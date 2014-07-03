@@ -73,7 +73,7 @@ Function Out-IniFile
         Description
         Creating a custom Hashtable and saving it to C:\MyNewFile.INI
     .Link
-		http://gallery.technet.microsoft.com/scriptcenter/7d7c867f-026e-4620-bf32-eca99b4e42f4
+        http://gallery.technet.microsoft.com/scriptcenter/7d7c867f-026e-4620-bf32-eca99b4e42f4
         Get-IniContent
     #>
 
