@@ -5,8 +5,8 @@ $testBasePath = "$here\LogTestBase.ps1"
 . $testBasePath
 
 Describe 'Log-Info' {
-	$logger = Get-Logger
-	$action = { Log-Info "test msg" }
+    $logger = Get-Logger
+    $action = { Log-Info "test msg" }
 
-	WithAddedFileAppender "Info" "test msg" $action $logger
+    WithAddedFileAppender "Info" "test msg" $action $logger
 }

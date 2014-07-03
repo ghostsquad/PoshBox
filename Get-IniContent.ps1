@@ -44,7 +44,7 @@ Function Get-IniContent
         Returns the key "Key" of the section "Section" from the C:\settings.ini file
 
     .Link
-		http://gallery.technet.microsoft.com/scriptcenter/ea40c1ef-c856-434b-b8fb-ebd7a76e8d91
+        http://gallery.technet.microsoft.com/scriptcenter/ea40c1ef-c856-434b-b8fb-ebd7a76e8d91
         Out-IniFile
     #>
 

@@ -3,9 +3,9 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$here\..\TestCommon.ps1"
 
 Describe "AddConsoleAppender" {
-	It "adds console appender to root logger on load of PoshBox" {
-		$appenders = @([log4net.LogManager]::GetAllRepositories()[0].Root.Appenders)
-		$appender = $appenders[0]
-		$appenders.Count | Should Be 1
-	}
+    It "adds console appender to root logger on load of PoshBox" {
+        $appenders = @([log4net.LogManager]::GetAllRepositories()[0].Root.Appenders)
+        $appender = $appenders[0]
+        $appenders.Count | Should Be 1
+    }
 }

@@ -1,4 +1,4 @@
 function MyFakeFunctionGetLogger
 {
-	Write-Output (Get-Logger)
+    Write-Output (Get-Logger)
 }
