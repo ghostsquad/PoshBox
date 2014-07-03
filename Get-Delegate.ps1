@@ -20,7 +20,7 @@ The delegate to create for the corresponding method. Example: [string]::format |
 $delegate = [string]::format | Get-Delegate string,string
 
 Gets a delegate for a matching overload with string,string parameters.
-It will actually return func<object,string> which is the correct 
+It will actually return func<object,string> which is the correct
 signature for invoking string.format with string,string.
 .EXAMPLE
 $delegate = [console]::beep | Get-Delegate @()
@@ -39,7 +39,7 @@ $delegate = [console]::writeline | Get-Delegate -Delegate 'action[int]'
 
 Gets a delegate for an explicit action[].
 .EXAMPLE
-$delegate = [string]::isnullorempty | get-delegate 
+$delegate = [string]::isnullorempty | get-delegate
 
 For a method with no overloads, we will choose the default method and create a corresponding action/action[] or func[].
 #>
@@ -61,8 +61,8 @@ For a method with no overloads, we will choose the default method and create a c
         [type]$DelegateType
     )
 
-    $base = $method.GetType().GetField("baseObject","nonpublic,instance").GetValue($method)    
-    
+    $base = $method.GetType().GetField("baseObject","nonpublic,instance").GetValue($method)
+
     if ($base -is [type]) {
         [type]$baseType = $base
         [reflection.bindingflags]$flags = "Public,Static"
@@ -75,20 +75,20 @@ For a method with no overloads, we will choose the default method and create a c
         write-verbose "Inferring from delegate."
 
         if ($DelegateType -eq [action]) {
-            # void action        
+            # void action
             $ParameterType = [type[]]@()
-        
+
         } elseif ($DelegateType.IsGenericType) {
             # get type name
             $name = $DelegateType.Name
 
             # is it [action[]] ?
             if ($name.StartsWith("Action``")) {
-    
-                $ParameterType = @($DelegateType.GetGenericArguments())    
-            
+
+                $ParameterType = @($DelegateType.GetGenericArguments())
+
             } elseif ($name.StartsWith("Func``")) {
-    
+
                 # it's a [func[]]
                 $ParameterType = @($DelegateType.GetGenericArguments())
                 $ParameterType = $ParameterType[0..$($ParameterType.length - 2)] # trim last element (TReturn)
@@ -130,7 +130,7 @@ For a method with no overloads, we will choose the default method and create a c
 
         # if parametertype is $null, fill it out; if it's not $null,
         # override it to correct it if needed, and warn user.
-        if ($pscmdlet.ParameterSetName -eq "FromParameterType") {           
+        if ($pscmdlet.ParameterSetName -eq "FromParameterType") {
             if ($ParameterType -and ((compare-object $parametertype $methodinfo.GetParameters().parametertype))) {
                 write-warning "Method not overloaded: Ignoring provided parameter type(s)."
             }
@@ -142,26 +142,26 @@ For a method with no overloads, we will choose the default method and create a c
     if (-not $methodInfo) {
         write-warning "Could not find matching signature for $($method.Name) with $($parametertype.count) parameter(s)."
     } else {
-        
+
         write-verbose "MethodInfo: $methodInfo"
 
         # it's important here to use the actual MethodInfo's parameter types,
         # not the desired types ($parametertype) because they may not match,
         # e.g. asked for method(int) but match is method(object).
 
-        if ($pscmdlet.ParameterSetName -eq "FromParameterType") {            
-            
+        if ($pscmdlet.ParameterSetName -eq "FromParameterType") {
+
             if ($methodInfo.GetParameters().count -gt 0) {
                 $ParameterType = $methodInfo.GetParameters().ParameterType
             }
-            
+
             # need to create corresponding [action[]] or [func[]]
             if ($methodInfo.ReturnType -eq [void]) {
                 if ($ParameterType.Length -eq 0) {
                     $DelegateType = [action]
                 } else {
                     # action<...>
-                    
+
                     # replace desired with matching overload parameter types
                     #$ParameterType = $methodInfo.GetParameters().ParameterType
                     $DelegateType = ("action[{0}]" -f ($ParameterType -join ",")) -as [type]
@@ -172,7 +172,7 @@ For a method with no overloads, we will choose the default method and create a c
                 # replace desired with matching overload parameter types
                 #$ParameterType = $methodInfo.GetParameters().ParameterType
                 $DelegateType = ("func[{0}]" -f (($ParameterType + $methodInfo.ReturnType) -join ",")) -as [type]
-            }                        
+            }
         }
         Write-Verbose $DelegateType
 
