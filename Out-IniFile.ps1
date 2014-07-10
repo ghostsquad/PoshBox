@@ -65,9 +65,9 @@ Function Out-IniFile
         Saves the content of the $IniVar Hashtable to the INI File c:\myinifile.ini and saves the file into $file
 
     .Example
-        $Category1 = @{“Key1”=”Value1”;”Key2”=”Value2”}
-    $Category2 = @{“Key1”=”Value1”;”Key2”=”Value2”}
-    $NewINIContent = @{“Category1”=$Category1;”Category2”=$Category2}
+        $Category1 = @{â€œKey1â€=â€Value1â€;â€Key2â€=â€Value2â€}
+    $Category2 = @{â€œKey1â€=â€Value1â€;â€Key2â€=â€Value2â€}
+    $NewINIContent = @{â€œCategory1â€=$Category1;â€Category2â€=$Category2}
     Out-IniFile -InputObject $NewINIContent -FilePath "C:\MyNewFile.INI"
         -----------
         Description
