@@ -11,7 +11,7 @@ function Add-FileLogAppender{
     )
 
     process {
-        Write-Debug "logLevelThreshold: $($logLevelTheshold.ToString())"
+        Write-Debug "logLevelThreshold: $($logLevelThreshold.ToString())"
         Write-Debug "logPattern: $logPattern"
         Write-Debug "logPath: $logPath"
         Write-Debug "logFile: $logFile"
