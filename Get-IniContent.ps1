@@ -71,19 +71,7 @@ Function Get-IniContent
                 $section = $matches[1]
                 $ini[$section] = @{}
                 $CommentCount = 0
-            }
-            "^(;.*)$" # Comment
-            {
-                if (!($section))
-                {
-                    $section = "No-Section"
-                    $ini[$section] = @{}
-                }
-                $value = $matches[1]
-                $CommentCount = $CommentCount + 1
-                $name = "Comment" + $CommentCount
-                $ini[$section][$name] = $value
-            }
+            }            
             "(.+?)\s*=\s*(.*)" # Key
             {
                 if (!($section))
