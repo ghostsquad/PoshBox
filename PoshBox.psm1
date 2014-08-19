@@ -28,10 +28,10 @@ Export-ModuleMember -Function PSUSing
 . $here\Logging\Log-Fatal.ps1
 
 . $here\Get-Delegate.ps1
+. $here\New-Interface.ps1
+. $here\ConvertTo-Hash.ps1
 
 . $here\Invoke-Generic.ps1
-. $here\Get-IniContent.ps1
-. $here\Out-IniFile.ps1
 
 . $here\Sql\Execute-MySqlQuery.ps1
 . $here\Sql\Execute-MySqlNonQuery.ps1
