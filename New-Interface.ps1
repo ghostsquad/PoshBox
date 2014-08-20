@@ -11,7 +11,7 @@ function New-Interface
         {
             public $Name(System.Management.Automation.PSObject obj) : base(obj)
             {
-                if (Definition == null) throw new System.NullReferenceException(`"Defintion is null!`");
+                if (Definition == null) throw new System.NullReferenceException(`"Definition is null!`");
                 if (obj == null) throw new System.ArgumentNullException(`"Obj was null!`");
 
                 foreach(var interfaceMember in Definition.Members)
@@ -24,7 +24,7 @@ function New-Interface
                         if (inheritorMember == null) continue;
 
                         if(inheritorMember.IsInstance &&
-                           inheritorMember.MemberType == interfaceMember.MemberType &&
+                           inheritorMember.MemberType == interfaceMember.MemberType &&kcl
                            inheritorMember.Name == interfaceMember.Name)
                         {
                             found = true;
