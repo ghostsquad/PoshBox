@@ -23,8 +23,8 @@ function New-Interface
                     {
                         if (inheritorMember == null) continue;
 
-                        if(inheritorMember.IsInstance &amp;&amp;
-                           inheritorMember.MemberType == interfaceMember.MemberType &amp;&amp;
+                        if(inheritorMember.IsInstance &&
+                           inheritorMember.MemberType == interfaceMember.MemberType &&
                            inheritorMember.Name == interfaceMember.Name)
                         {
                             found = true;
