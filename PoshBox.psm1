@@ -1,3 +1,24 @@
+if(-not Get-Module PSCX){
+    Write-Host "Installing Dependency Module: PSCX"
+    $env:Path += ";C:\Program Files (x86)\PowerShell Community Extensions\Pscx3\Pscx"
+    Write-Host "Downloading PSCX msi package..." -ForegroundColor Gray
+    $pscxDownloadUrl = "http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=pscx&DownloadId=744915&FileTime=130265033731230000&Build=20911"
+    $tempPath = [System.IO.Path]::Join([System.IO.Path]::GetTempPath(), [guid]::NewGuid().ToString())
+    $destination = Join-Path $tempPath "pscx.msi"
+    (new-object Net.WebClient).DownloadFile($pscxDownloadUrl, $destination)
+
+    $installLog = Join-Path $tempPath "pscx_install.log"
+
+    $params = '/i "{0}" /quiet /qn /norestart /log {1}' -f $destination, $installLog
+
+    $installProcess = Start-Process -FilePath msiexec -ArgumentList $params -Wait -PassThru;
+    if($installProcess.ExitCode -ne 0){
+        throw "failed to install Powershell Community Extension. see $installLog"
+    }
+}
+
+Import-Module PSCX
+
 $null = Add-Type -Path (Join-Path $PSScriptRoot "logging/log4net.2.0.3/log4net.dll")
 $null = Add-Type -Path (Join-Path $PSScriptRoot "sql/mysql.data.dll")
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
