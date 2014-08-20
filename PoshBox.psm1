@@ -42,6 +42,7 @@ Export-ModuleMember -Function PSUSing
 . $here\ConvertTo-Hash.ps1
 
 . $here\Invoke-Generic.ps1
+. $here\New-PSCredential.ps1
 
 . $here\Sql\Execute-MySqlQuery.ps1
 . $here\Sql\Execute-MySqlNonQuery.ps1
