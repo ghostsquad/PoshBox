@@ -2,11 +2,15 @@ if(-not (Get-Module PSCX -ListAvailable)){
     Write-Error "Powershell Community Extensions is not installed. Please visit http://pscx.codeplex.com/downloads/get/744915"
 }
 
-Import-Module PSCX
+Import-Module PSCX -Global
 
 $null = Add-Type -Path (Join-Path $PSScriptRoot "logging/log4net.2.0.3/log4net.dll")
 $null = Add-Type -Path (Join-Path $PSScriptRoot "sql/mysql.data.dll")
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+Import-Module $here\Indented\Indented.Common\Indented.Common.psd1 -Global
+Import-Module $here\Indented\Indented.Dns\Indented.Dns.psd1 -Global
+Import-Module $here\Indented\Indented.NetworkTools\Indented.NetworkTools.psd1 -Global
 
 $global:PoshBoxSettings = New-Object PSObject -Property @{
     AWSAccessKey              = ""
@@ -45,9 +49,6 @@ Export-ModuleMember -Function PSUSing
 . $here\Sql\Execute-SqlNonQuery.ps1
 
 . $here\Ui\New-ConsoleTable.ps1
-
-. $here\Networking\ConvertTo-BinaryIp.ps1
-. $here\Networking\ConvertTo-DecimalIP.ps1
 
 . $here\Development\Fix-SourceFiles.ps1
 . $here\Development\Remove-ExcessWhitespace.ps1
