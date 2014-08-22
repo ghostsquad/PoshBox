@@ -26,6 +26,7 @@ $global:PoshBoxSettings = New-Object PSObject -Property @{
 AddConsoleLogAppender
 
 . $here\PSUsing.ps1
+. $here\Extensions\PSCustomObjectExtensions.ps1
 
 Export-ModuleMember -Function PSUSing
 
