@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/ghostsquad/PoshBox/master/Assets/poshbox.png" alt="PoshBox Logo" title="PoshBox" align="right" />
 
-PoshBox is a Powershell library, similar to Powershell Community Extensions. Some of things inside:
+PoshBox is my <b>Po</b>wer<b>sh</b>ell Tool<b>Box</b>, similar to Powershell Community Extensions. In fact, PoshBox pulls various modules and code I've found and developed or improved upon all into one place. This isn't a "catch all". I'm trying to keep this module restricted to cmdlets and such that would be commonly used in any powershell development.
 
 1. **Logging** - Cmdlets that leverage Log4net
 2. **Development helpers** - Source File Cleanup
@@ -13,7 +13,8 @@ PoshBox is a Powershell library, similar to Powershell Community Extensions. Som
 
 ## Installation
 
-1. Download the master branch zip
+1. Install [Powershell Community Extensions 3.1 or later](https://pscx.codeplex.com/releases)
+2. Download the master branch zip
 2. Extract to C:\Users\<YOU>\Documents\WindowsPowerShell\Modules
 3. Run the following to import the module and verify:
 
