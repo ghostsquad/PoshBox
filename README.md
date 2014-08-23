@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/ghostsquad/PoshBox/master/Assets/poshbox.png" alt="PoshBox Logo" title="PoshBox" align="right" />
 
-PoshBox is my <b>Po</b>wer<b>sh</b>ell Tool<b>Box</b>, similar to Powershell Community Extensions. In fact, PoshBox pulls various modules and code I've found and developed or improved upon all into one place. This isn't a "catch all". I'm trying to keep this module restricted to cmdlets and such that would be commonly used in any powershell development.
+PoshBox is my <b>Po</b>wer<b>sh</b>ell Tool<b>Box</b>, similar to Powershell Community Extensions. In fact, PoshBox pulls various modules and code I've found, developed or improved upon all into one place. This isn't a "catch all". I'm trying to keep this module restricted to cmdlets and such that would be commonly used in any powershell development.
 
 1. **Logging** - Cmdlets that leverage Log4net
 2. **Development helpers** - Source File Cleanup
