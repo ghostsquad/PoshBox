@@ -1,3 +1,7 @@
+$ErrorActionPrefence = "Stop"
+Set-StrictMode -Version Latest
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+
 if(-not (Get-Module PSCX -ListAvailable)){
     Write-Error "Powershell Community Extensions is not installed. Please visit http://pscx.codeplex.com/downloads/get/744915"
 }
@@ -6,7 +10,6 @@ Import-Module PSCX -Global
 
 $null = Add-Type -Path (Join-Path $PSScriptRoot "logging/log4net.2.0.3/log4net.dll")
 $null = Add-Type -Path (Join-Path $PSScriptRoot "sql/mysql.data.dll")
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $here\Indented\Indented.Common\Indented.Common.psd1 -Global
 Import-Module $here\Indented\Indented.Dns\Indented.Dns.psd1 -Global

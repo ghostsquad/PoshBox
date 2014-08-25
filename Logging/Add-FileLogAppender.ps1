@@ -83,15 +83,15 @@ function AddConsoleLogAppender {
         -band [log4net.Appender.ColoredConsoleAppender+Colors]::White
 
     $consoleAppender | AddMapping -level ([log4net.Core.Level]::Debug) -foreFlags $lightYellowFlags `
-        -backFlags $consoleBlackColor
+        -backFlags $blackColorFlags
     $consoleAppender | AddMapping -level ([log4net.Core.Level]::Info)  -fore "White" `
-        -backFlags $consoleBlackColor
+        -backFlags $blackColorFlags
     $consoleAppender | AddMapping -level ([log4net.Core.Level]::Warn)  -fore "Yellow" `
-        -backFlags $consoleBlackColor
+        -backFlags $blackColorFlags
     $consoleAppender | AddMapping -level ([log4net.Core.Level]::Error) -fore "Red" `
-        -backFlags $consoleBlackColor
+        -backFlags $blackColorFlags
     $consoleAppender | AddMapping -level ([log4net.Core.Level]::Fatal) -fore "Red" `
-        -backFlags $consoleBlackColor
+        -backFlags $blackColorFlags
 
     $consoleAppender.ActivateOptions()
 
