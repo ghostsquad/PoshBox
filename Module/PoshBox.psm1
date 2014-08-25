@@ -8,6 +8,9 @@ if(-not (Get-Module PSCX -ListAvailable)){
 
 Import-Module PSCX -Global
 
+$global:PoshBoxModuleRoot = $PSScriptRoot
+
+$null = Add-Type -Path (Join-Path $PSScriptRoot "PoshBox.dll")
 $null = Add-Type -Path (Join-Path $PSScriptRoot "logging/log4net.2.0.3/log4net.dll")
 $null = Add-Type -Path (Join-Path $PSScriptRoot "sql/mysql.data.dll")
 
@@ -46,6 +49,7 @@ Export-ModuleMember -Function PSUSing
 
 . $here\Invoke-Generic.ps1
 . $here\New-PSCredential.ps1
+. $here\New-Interface.ps1
 
 . $here\Sql\Execute-MySqlQuery.ps1
 . $here\Sql\Execute-MySqlNonQuery.ps1
