@@ -10,27 +10,13 @@ function AddConsoleLogAppender {
             [Parameter(ValueFromPipeline=$True)]
             $appender,
             [log4net.Core.Level]$level,
-            [string]$fore,
-            [int]$foreFlags,
-            [string]$back,
-            [int]$backFlags
+            [int]$fore
         )
 
         $mapping = New-Object log4net.Appender.ColoredConsoleAppender+LevelColors
         $mapping.Level = $level
-        if(-not [string]::IsNullOrEmpty($fore)){
-            $mapping.ForeColor = [Enum]::Parse([log4net.Appender.ColoredConsoleAppender+Colors], $fore, $true)
-        }
-        else {
-            $mapping.ForeColor = $foreFlags
-        }
-
-        if(-not [string]::IsNullOrEmpty($back)){
-            $mapping.BackColor = [Enum]::Parse([log4net.Appender.ColoredConsoleAppender+Colors], $back, $true)
-        }
-        else {
-            $mapping.BackColor = $backFlags
-        }
+        $mapping.ForeColor = $fore
+        $mapping.BackColor = 0
 
         $null = $appender.AddMapping($mapping)
     }
@@ -41,22 +27,17 @@ function AddConsoleLogAppender {
     # determines the log statements that show up
     $consoleAppender.Threshold = $logLevelThreshold
 
-    $blackColorFlags = [log4net.Appender.ColoredConsoleAppender+Colors]::Blue `
-        -band [log4net.Appender.ColoredConsoleAppender+Colors]::Green `
-        -band [log4net.Appender.ColoredConsoleAppender+Colors]::Red
-    $lightYellowFlags = [log4net.Appender.ColoredConsoleAppender+Colors]::Yellow `
-        -band [log4net.Appender.ColoredConsoleAppender+Colors]::White
+    [int]$white = [log4net.Appender.ColoredConsoleAppender+Colors]::White
+    [int]$red = [log4net.Appender.ColoredConsoleAppender+Colors]::Red
+    [int]$yellow = [log4net.Appender.ColoredConsoleAppender+Colors]::Yellow
+    [int]$cyan = [log4net.Appender.ColoredConsoleAppender+Colors]::Cyan
+    [int]$highIntensity = [log4net.Appender.ColoredConsoleAppender+Colors]::HighIntensity
 
-    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Debug) -foreFlags $lightYellowFlags `
-        -backFlags $blackColorFlags
-    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Info)  -fore "White" `
-        -backFlags $blackColorFlags
-    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Warn)  -fore "Yellow" `
-        -backFlags $blackColorFlags
-    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Error) -fore "Red" `
-        -backFlags $blackColorFlags
-    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Fatal) -fore "Red" `
-        -backFlags $blackColorFlags
+    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Debug) -fore ($cyan -bor $highIntensity)
+    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Info)  -fore $white
+    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Warn)  -fore ($yellow -bor $highIntensity)
+    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Error) -fore ($red -bor $highIntensity)
+    $consoleAppender | AddMapping -level ([log4net.Core.Level]::Fatal) -fore ($red -bor $highIntensity)
 
     $consoleAppender.ActivateOptions()
 
