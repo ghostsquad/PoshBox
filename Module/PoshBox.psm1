@@ -50,6 +50,7 @@ Export-ModuleMember -Function PSUSing
 . $here\Invoke-Generic.ps1
 . $here\New-PSCredential.ps1
 . $here\New-Interface.ps1
+. $here\New-PSObject.ps1
 
 . $here\Sql\Execute-MySqlQuery.ps1
 . $here\Sql\Execute-MySqlNonQuery.ps1
