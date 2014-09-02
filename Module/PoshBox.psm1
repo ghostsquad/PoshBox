@@ -28,6 +28,7 @@ $global:PoshBoxSettings = New-Object PSObject -Property @{
 [log4net.LogManager]::ResetConfiguration();
 
 . $here\Logging\Add-FileLogAppender.ps1
+. $here\Logging\AddConsoleLogAppender.ps1
 
 AddConsoleLogAppender
 
