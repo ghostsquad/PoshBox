@@ -1,16 +1,10 @@
-param(
+param (
     [switch]$debug
 )
 $ErrorActionPreference = "Stop"
-Import-Module Pester
-Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Path)
 if($debug){
-    try {
-        Set-Variable -Name "DebugPreference" -Scope 1 -Value "Continue"
-    }
-    catch [Exception] {
-        Set-Variable -Name "DebugPreference" -Scope 0 -Value "Continue"
-    }
+    $DebugPreference = "Continue"
 }
-#Set-StrictMode -Version "Latest"
-Invoke-Pester
+
+$cmd = 'Set-Location ''{0}''; Import-Module Pester; Invoke-Pester -EnableExit' -f (Split-Path -Parent $MyInvocation.MyCommand.Path)
+powershell.exe -noprofile -command $cmd
