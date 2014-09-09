@@ -11,8 +11,9 @@ Import-Module PSCX -Global
 $global:PoshBoxModuleRoot = $PSScriptRoot
 
 $null = Add-Type -Path (Join-Path $PSScriptRoot "PoshBox.dll")
-$null = Add-Type -Path (Join-Path $PSScriptRoot "logging/log4net.2.0.3/log4net.dll")
-$null = Add-Type -Path (Join-Path $PSScriptRoot "sql/mysql.data.dll")
+$null = Add-Type -Path (Join-Path $PSScriptRoot "Logging/log4net.2.0.3/log4net.dll")
+$null = Add-Type -Path (Join-Path $PSScriptRoot "Sql/mysql.data.dll")
+$null = Add-Type -Path (Join-Path $PSScriptRoot "CredentialManagement/CredentialManagement.dll")
 
 Import-Module $here\Indented\Indented.Common\Indented.Common.psd1 -Global
 Import-Module $here\Indented\Indented.Dns\Indented.Dns.psd1 -Global
@@ -53,6 +54,10 @@ Export-ModuleMember -Function PSUSing
 . $here\New-Interface.ps1
 . $here\New-PSObject.ps1
 . $here\Add-TypeAccelerator.ps1
+
+. $here\CredentialManagement\Get-ManagedCredential.ps1
+. $here\CredentialManagement\Set-ManagedCredential.ps1
+. $here\CredentialManagement\Remove-ManagedCredential.ps1
 
 . $here\Sql\Execute-MySqlQuery.ps1
 . $here\Sql\Execute-MySqlNonQuery.ps1
