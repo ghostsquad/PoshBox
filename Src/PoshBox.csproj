@@ -43,8 +43,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Parallel\IParallelJobManager.cs" />
+    <Compile Include="Parallel\IRunspaceInvocationInfo.cs" />
+    <Compile Include="Parallel\IRunspaceJobInfo.cs" />
+    <Compile Include="Parallel\ParallelJobManager.cs" />
+    <Compile Include="Parallel\RunspaceJobInfo.cs" />
     <Compile Include="PowershellCaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Parallel\RunspaceInvocationInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
@@ -52,16 +58,16 @@
   <Target Name="BeforeBuild">
   </Target>
   -->
-  <Import Project="$(MSBuildExtensionsPath)\ExtensionPack\MSBuild.ExtensionPack.tasks"/>
+  <Import Project="$(MSBuildExtensionsPath)\ExtensionPack\MSBuild.ExtensionPack.tasks" />
   <Target Name="AfterBuild">
     <ItemGroup>
-        <OutputFiles Include="$(TargetName).dll"/>
+      <OutputFiles Include="$(TargetName).dll" />
     </ItemGroup>
     <MSBuild.ExtensionPack.FileSystem.RoboCopy Source="$(TargetDir)\" Destination="$(SolutionDir)\..\Module\" Files="@(OutputFiles)">
-        <Output TaskParameter="ExitCode" PropertyName="Exit" />
-        <Output TaskParameter="ReturnCode" PropertyName="Return" />
+      <Output TaskParameter="ExitCode" PropertyName="Exit" />
+      <Output TaskParameter="ReturnCode" PropertyName="Return" />
     </MSBuild.ExtensionPack.FileSystem.RoboCopy>
-    <Message Text="ExitCode = $(Exit)"/>
-    <Message Text="ReturnCode = $(Return)"/>
+    <Message Text="ExitCode = $(Exit)" />
+    <Message Text="ReturnCode = $(Return)" />
   </Target>
 </Project>
