@@ -2,13 +2,16 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Management.Automation;
+    using System.Security.Cryptography.X509Certificates;
 
     public interface IParallelJobManager {
-        void ProcessNext(ScriptBlock scriptBlock, object inputObject);
+        void AddJob(ScriptBlock scriptBlock, object inputObject);
 
-        void ProcessNext(ScriptBlock scriptBlock, IDictionary parameterDictionary);
+        void AddJob(ScriptBlock scriptBlock, IDictionary parameterDictionary);
 
-        void ProcessNext(ScriptBlock scriptBlock, IList parameterList);
+        void AddJob(ScriptBlock scriptBlock, IList parameterList);
+
+        void BeginProcessing();
 
         IEnumerable<RunspaceInvocationInfo> GetResults();
 
