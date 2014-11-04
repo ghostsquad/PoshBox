@@ -1,6 +1,6 @@
 function AddConsoleLogAppender {
     param(
-        [log4net.Core.Level]$logLevelThreshold = [log4net.Core.Level]::Debug,
+        [log4net.Core.Level]$logLevelThreshold = $(GetDefaultLogThreshold),
         [string]$logPattern = "%date{ISO8601} [%thread] %-5level [%ndc] - %message%newline"
     )
 

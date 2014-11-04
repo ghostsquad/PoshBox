@@ -1,13 +1,14 @@
 function Add-FileLogAppender{
     [CmdletBinding()]
     param (
-        [log4net.Core.Level]$logLevelThreshold = [log4net.Core.Level]::Info,
+        [log4net.Core.Level]$logLevelThreshold = $(GetDefaultLogThreshold),
         [string]$logPattern = "%date{ISO8601} [%thread] %-5level [%ndc] - %message%newline",
         [string]$logPath = (Join-Path $PSScriptRoot "logs"),
         [string]$logFile = ((Split-Path $MyInvocation.PSCommandPath -Leaf) `
                 + ([DateTime]::UtcNow.ToString("s") -replace ":","-") + "Z.log"),
         [parameter(ValueFromPipeline=$true)]
-        [log4net.ILog]$log
+        [log4net.ILog]$log,
+        [switch]$rolling = $false
     )
 
     process {
@@ -24,7 +25,16 @@ function Add-FileLogAppender{
 
         $patternLayout = new-object log4net.Layout.PatternLayout($logPattern)
         $fullLogFile = (Join-Path $logPath $logFile)
-        $fileAppender = New-Object log4net.Appender.FileAppender($patternLayout, $fullLogFile, $true)
+        if($rolling) {
+            $fileAppender = New-Object log4net.Appender.RollingFileAppender
+            $fileAppender.DatePattern = "yyyyMMdd"
+            $fileAppender.PreserveLogFileNameExtension  = $true
+        } else {
+            $fileAppender = New-Object log4net.Appender.FileAppender
+        }
+        $fileAppender.Layout = $patternLayout
+        $fileAppender.File = $fullLogFile
+        $fileAppender.AppendToFile = $true
         $fileAppender.Threshold = $logLevelThreshold
         $fileAppender.LockingModel = new-object log4net.Appender.FileAppender+MinimalLock
         $fileAppender.ActivateOptions()

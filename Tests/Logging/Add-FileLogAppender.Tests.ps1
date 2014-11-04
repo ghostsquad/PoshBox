@@ -21,4 +21,8 @@ Describe "Add-FileLogAppender" {
             $logger.Logger.Appenders.Count | Should Be ($appendersBefore + 1)
         }
     }
+
+    It "nested loggers use parent file appender" {
+        
+    }
 }
