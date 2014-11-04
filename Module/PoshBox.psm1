@@ -47,6 +47,7 @@ Export-ModuleMember -Function PSUSing
 . $here\Logging\Log-Fatal.ps1
 
 . $here\Get-Delegate.ps1
+. $here\Get-DelegateType.ps1
 . $here\ConvertTo-Hash.ps1
 
 . $here\Invoke-Generic.ps1
