@@ -14,20 +14,26 @@ function WithAddedFileAppender {
 
         It 'uses filename and path provided' {
             $action.Invoke()
-            Test-Path (Join-Path $logPath $logFileName)    | Should Be $true
+            Test-Path (Join-Path $logPath $logFileName) | Should Be $true
         }
 
         It 'log line contains the logtype and message' {
-            $logContents = gc $fullLogFileNameAndPath
-            $logContentCountBefore = $logContents.Count
-            $action.Invoke()
-            $logContents = gc $fullLogFileNameAndPath
-            Write-Debug "log: $fullLogFileNameAndPath"
-            $expectedCount = ($logContentCountBefore + 1)
-            $logContents.Count | Should Be $expectedCount
-            $logLine = $logContents[$expectedCount - 1]
-            $logLine -like "*$logType*" | Should Be $true
-            $logLine -like "*$expectedMessage*" | Should Be $true
+            try {
+                $logContents = [System.IO.File]::ReadAllLines($fullLogFileNameAndPath)
+                $logContentCountBefore = $logContents.Count
+                $action.Invoke()
+                $logContents = [System.IO.File]::ReadAllLines($fullLogFileNameAndPath)
+                Write-Debug "log: $fullLogFileNameAndPath"
+                $expectedCount = ($logContentCountBefore + 1)
+                $logContents.Count | Should Be $expectedCount
+                $logLine = $logContents[$expectedCount - 1]
+                $logLine -like "*$logType*" | Should Be $true
+                $logLine -like "*$expectedMessage*" | Should Be $true
+            } finally {
+                if(Test-Path $fullLogFileNameAndPath) {
+                    Remove-Item $fullLogFileNameAndPath
+                }
+            }
         }
     }
 }
