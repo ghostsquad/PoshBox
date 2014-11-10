@@ -95,3 +95,27 @@ Describe "PSAddMember" {
         }
     }
 }
+
+Describe "PSOverrideScriptMethod" {
+    It "Overrides a scriptmethod if it already exists and has the same parameters" {
+        $expectedName = "foo"
+        $actualDefinition = {param($a) return "original"}
+
+        $actualObject = new-psobject
+        $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
+
+        [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a) return "new"})
+
+        $actualObject.$expectedName() | Should Be "new"
+    }
+
+    It "Throws an expection if param definition is different" {
+        $expectedName = "foo"
+        $actualDefinition = {param($a)}
+
+        $actualObject = new-psobject
+        $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
+
+        { [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a, $b)}) } | Should Throw
+    }
+}

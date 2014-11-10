@@ -25,18 +25,29 @@ $global:PoshBoxSettings = New-Object PSObject -Property @{
     Version                   = "0.1 alpha"
 }
 
-# setup root logger with console appender
 [log4net.LogManager]::ResetConfiguration();
 
+# setup root logger with console appender
 . $here\Logging\Add-FileLogAppender.ps1
 . $here\Logging\AddConsoleLogAppender.ps1
 
 AddConsoleLogAppender
 
+# there's a bit of a dependency tree, so let's load some of the lower level functions first
 . $here\PSUsing.ps1
+. $here\New-GenericObject.ps1
+. $here\New-PSObject.ps1
+. $here\Get-ScriptBlockParams.ps1
 . $here\Extensions\PSCustomObjectExtensions.ps1
 
-Export-ModuleMember -Function PSUSing
+# Misc
+. $here\Add-TypeAccelerator.ps1
+. $here\ConvertTo-Hash.ps1
+. $here\Get-Delegate.ps1
+. $here\Get-DelegateType.ps1
+. $here\Invoke-Generic.ps1
+. $here\New-PSCredential.ps1
+. $here\PSUsing.ps1
 
 # Logging
 . $here\Logging\Get-Logger.ps1
@@ -46,29 +57,25 @@ Export-ModuleMember -Function PSUSing
 . $here\Logging\Log-Error.ps1
 . $here\Logging\Log-Fatal.ps1
 
-. $here\Get-Delegate.ps1
-. $here\Get-DelegateType.ps1
-. $here\ConvertTo-Hash.ps1
-
-. $here\Invoke-Generic.ps1
-. $here\New-PSCredential.ps1
-. $here\New-PSObject.ps1
-. $here\Add-TypeAccelerator.ps1
-
+# CredentialManagement
 . $here\CredentialManagement\Get-ManagedCredential.ps1
 . $here\CredentialManagement\Set-ManagedCredential.ps1
 . $here\CredentialManagement\Remove-ManagedCredential.ps1
 
+# Sql
 . $here\Sql\Execute-MySqlQuery.ps1
 . $here\Sql\Execute-MySqlNonQuery.ps1
 . $here\Sql\Execute-SqlQuery.ps1
 . $here\Sql\Execute-SqlNonQuery.ps1
 
+# Ui - Note: This is kind of broken?
 . $here\Ui\New-ConsoleTable.ps1
 
+# Development Helpers
 . $here\Development\Fix-SourceFiles.ps1
 . $here\Development\Remove-ExcessWhitespace.ps1
 . $here\Development\Replace-TabsWithSpaces.ps1
 . $here\Development\Set-EncodingUtf8NoBom.ps1
 
 Export-ModuleMember -Function *-*
+Export-ModuleMember -Function PSUsing

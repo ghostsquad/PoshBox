@@ -71,3 +71,33 @@ Update-TypeData -TypeName System.Object `
         }
     } `
     -Force
+
+Update-TypeData -TypeName System.Object `
+    -MemberType ScriptMethod `
+    -MemberName PSOverrideScriptMethod `
+    -Value {
+        if($args.count -eq 2) {
+            $name,$scriptblock = $args
+            $originalMethod = $this.psobject.Methods[$name]
+            if($originalMethod -ne $null) {
+                $newMethodParams = Get-ScriptBlockParams $scriptblock
+                $originalMethodParams = Get-ScriptBlockParams $originalMethod.Script
+                if($newMethodParams.Count -ne $originalMethodParams.Count) {
+                    throw "param count mismatch!"
+                }
+
+                for($i = 0; $i -lt $originalMethodParams.Count; $i++) {
+                    if($originalMethodParams[$i].Value -ne $newMethodParams[$i].Value) {
+                        throw ("param type mismatch. Found {0} but was expecting {1}." -f $newMethodParams[$i].Value, $originalMethodParams[$i].Value)
+                    }
+                }
+
+                $this.PSAddScriptMethod($name, $scriptblock)
+            } else {
+                throw (new-object System.InvalidOperationException("Could not find a method with name: $name"))
+            }
+        } else {
+            throw (new-object System.InvalidOperationException("No overload for PSOverrideScriptMethod takes the specified number of parameters."))
+        }
+    } `
+    -Force
