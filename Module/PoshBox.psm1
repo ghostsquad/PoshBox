@@ -15,9 +15,9 @@ $null = Add-Type -Path (Join-Path $PSScriptRoot "Logging/log4net.2.0.3/log4net.d
 $null = Add-Type -Path (Join-Path $PSScriptRoot "Sql/mysql.data.dll")
 $null = Add-Type -Path (Join-Path $PSScriptRoot "CredentialManagement/CredentialManagement.dll")
 
-Import-Module $here\Indented\Indented.Common\Indented.Common.psd1 -Global
-Import-Module $here\Indented\Indented.Dns\Indented.Dns.psd1 -Global
-Import-Module $here\Indented\Indented.NetworkTools\Indented.NetworkTools.psd1 -Global
+#Import-Module $here\Indented\Indented.Common\Indented.Common.psd1 -Global
+#Import-Module $here\Indented\Indented.Dns\Indented.Dns.psd1 -Global
+#Import-Module $here\Indented\Indented.NetworkTools\Indented.NetworkTools.psd1 -Global
 
 $global:PoshBoxSettings = New-Object PSObject -Property @{
     AWSAccessKey              = ""
@@ -26,6 +26,10 @@ $global:PoshBoxSettings = New-Object PSObject -Property @{
 }
 
 [log4net.LogManager]::ResetConfiguration();
+
+function GetFullExceptionDetails ($exception) {
+    return (Out-String -InputObject (Format-List -InputObject (Select-Object -InputObject $exception -Property *))).Trim()
+}
 
 # setup root logger with console appender
 . $here\Logging\Add-FileLogAppender.ps1
@@ -39,6 +43,7 @@ AddConsoleLogAppender
 . $here\New-PSObject.ps1
 . $here\Get-ScriptBlockParams.ps1
 . $here\Extensions\PSCustomObjectExtensions.ps1
+#. $here\New-PSClass.ps1
 
 # Misc
 . $here\Add-TypeAccelerator.ps1
@@ -47,7 +52,6 @@ AddConsoleLogAppender
 . $here\Get-DelegateType.ps1
 . $here\Invoke-Generic.ps1
 . $here\New-PSCredential.ps1
-. $here\PSUsing.ps1
 
 # Logging
 . $here\Logging\Get-Logger.ps1
@@ -78,4 +82,5 @@ AddConsoleLogAppender
 . $here\Development\Set-EncodingUtf8NoBom.ps1
 
 Export-ModuleMember -Function *-*
+#Export-ModuleMember -Function New-PSClass
 Export-ModuleMember -Function PSUsing
