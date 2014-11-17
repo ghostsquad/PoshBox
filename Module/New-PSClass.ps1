@@ -103,9 +103,7 @@ function New-PSClass {
         }
     }
 
-    & $Definition
-
-    $class = New-PSObject
+    $class = New-Object PSObject
 
     # Class Internals
     Attach-PSNote $class ClassName $ClassName
@@ -208,7 +206,7 @@ function Deserialize-PSClass ($deserialized) {
     }
 
     foreach($note in $class.Notes) {
-        if(-not $note.Private} {
+        if(-not $note.Private) {
             $instance.$($note.Name) = $deserialized.$($note.Name)
         }
     }
@@ -315,7 +313,7 @@ function __PSClassAttachObject ($Class, [PSObject] $instance) {
         $instanceScriptText = $ObjectString + '.Class.InvokeMethod( "' + $method.name + '", ' + $ObjectString + ', $Args )'
         $instanceScript = $ExecutionContext.InvokeCommand.NewScriptBlock( $instanceScriptText )
 
-        Attach-PSScriptMethod $targetObject $method.Name $instanceScript  -override:$method.override
+        Attach-PSScriptMethod $targetObject $method.Name $instanceScript -override:$method.override
     }
 
     # - - - - - - - - - - - - - - - - - - - - - - - -

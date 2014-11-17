@@ -6,10 +6,9 @@ Describe "New-PSClass" {
     Context "GivenStaticMethod" {
         It "runs provided script block" {
             $testClass = New-PSClass "TestClass" {
-                write-host (get-item function:\* | %{$_.Name} | out-string).Trim()
-                #method "testMethod" -static {
-                #    return "expected"
-                #}
+                method "testMethod" -static {
+                    return "expected"
+                }
             }
             $testClass.testMethod() | Should Be "expected"
         }
