@@ -137,6 +137,7 @@ function New-PSClass {
     Attach-PSScriptMethod $class New {
         $instance = new-object Management.Automation.PSObject
         $this.AttachTo( $instance, $Args )
+        return $instance
     }
 
     Attach-PSScriptMethod $class __LookupClassObject {
@@ -258,14 +259,20 @@ function __PSClassInitialize ($class, $instance, $params) {
 # __PSClassAttachObject
 #    Attaches Notes, Methods, and Properties to Instance Object
 # ===================================================================================
-function __PSClassAttachObject ($Class, [PSObject] $instance) {
-    function AssurePrivate {
-        if ($instance.($Class.privateName) -eq $null) {
-            Attach-PSNote $instance ($class.privateName) (new-object Management.Automation.PSObject)
-            Attach-PSNote $instance.($class.privateName) __Parent
-        }
-        $instance.($class.privateName).__Parent = $instance
-    }
+function __PSClassAttachObject ($Class, [PSObject] $Instance) {
+    # function AssurePrivate {
+        # param (
+            # $Class,
+            # $Instance
+        # )
+
+        # if ($Instance.psobject.properties.Item($Class.privateName) -eq $null) {
+            # Attach-PSNote $Instance ($Class.privateName) (new-object Management.Automation.PSObject)
+            # Attach-PSNote $Instance.($Class.privateName) __Parent
+        # }
+
+        # $Instance.($Class.privateName).__Parent = $Instance
+    # }
 
     # - - - - - - - - - - - - - - - - - - - - - - - -
     #  Attach BaseClass
@@ -279,9 +286,10 @@ function __PSClassAttachObject ($Class, [PSObject] $instance) {
     # - - - - - - - - - - - - - - - - - - - - - - - -
     #  Attach Notes
     # - - - - - - - - - - - - - - - - - - - - - - - -
+    #AssurePrivate $Class $Instance
+
     foreach ($note in $Class.Notes) {
         if ($note.private) {
-            AssurePrivate
             Attach-PSNote $instance.($Class.privateName) $note.Name $note.DefaultValue
         } else {
             Attach-PSNote $instance $note.Name $note.DefaultValue
@@ -300,7 +308,7 @@ function __PSClassAttachObject ($Class, [PSObject] $instance) {
         # pointing to the instance object. $ObjectString resolves
         # this for InvokeMethod
         if ($method.private) {
-            AssurePrivate
+            #AssurePrivate
             $targetObject = $instance.($Class.privateName)
             $ObjectString = '$this.__Parent'
         } else {
