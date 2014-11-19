@@ -45,15 +45,6 @@ Describe "New-PSClass" {
     }
 
     Context "Construction - Rainy" {
-        It "cannot call private notes from the outside" {
-            $testClass = New-PSClass TestClass {
-                note -private "foo"
-            }
-
-            $actual = $testClass.New()
-            { $actual.foo } | Should Throw
-        }
-
         It "Throws when attempting to add multiple static methods with same name" {
             { New-PSClass TestClass {
                 method "testMethod" -static {}

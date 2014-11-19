@@ -14,12 +14,21 @@ function Attach-PSProperty {
         $scriptProperty = new-object management.automation.PsScriptProperty $Name,$Get
     }
 
-    if ($InputObject.psobject.properties[$Name]) {
-        if($Override) {
+    if($Override) {
+        $existingProperty = $InputObject.psobject.properties[$Name]
+        if($existingProperty -ne $null) {
+            if($existingProperty.SetterScript -eq $null -xor $Set -eq $null) {
+                throw (new-object System.InvalidOperationException("Setter behavior does not match existing property"))
+            }
+
             $InputObject.psobject.properties.Remove($Name)
         } else {
-            throw (new-object System.InvalidOperationException("property with name: $Name already exists. Parameter: -Override required."))
+            throw (new-object System.InvalidOperationException("Could not find a property with name: $Name"))
         }
+    }
+
+    if ($InputObject.psobject.properties[$Name] -ne $null) {
+        throw (new-object System.InvalidOperationException("property with name: $Name already exists. Parameter: -Override required."))
     }
 
     [Void]$InputObject.psobject.properties.add($scriptProperty)

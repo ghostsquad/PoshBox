@@ -4,14 +4,13 @@
 # $hash = @{q3=4; q4="Q4"; q5=(gsv alg)}
 # $p.PSAddMember($hash)
 
-Update-TypeData -TypeName System.Management.Automation.PSObject `
+Update-TypeData -TypeName System.Object `
     -MemberType ScriptMethod `
     -MemberName PSAddNoteProperty `
     -Value {
         switch ($args.count)  {
             1 {
                 Add-Member -InputObject $this -NotePropertyMembers $args[0] -Passthru
-                breal
             }
 
             2 {
@@ -24,7 +23,7 @@ Update-TypeData -TypeName System.Management.Automation.PSObject `
     } `
     -Force
 
-Update-TypeData -TypeName System.Management.Automation.PSObject `
+Update-TypeData -TypeName System.Object `
     -MemberType ScriptMethod `
     -MemberName PSAddScriptProperty `
     -Value {
@@ -50,7 +49,7 @@ Update-TypeData -TypeName System.Object `
     } `
     -Force
 
-Update-TypeData -TypeName System.Management.Automation.PSObject `
+Update-TypeData -TypeName System.Object `
     -MemberType ScriptMethod `
     -MemberName PSAddMember `
     -Value {
@@ -73,7 +72,7 @@ Update-TypeData -TypeName System.Management.Automation.PSObject `
     } `
     -Force
 
-Update-TypeData -TypeName System.Management.Automation.PSObject `
+Update-TypeData -TypeName System.Object `
     -MemberType ScriptMethod `
     -MemberName PSOverrideScriptMethod `
     -Value {

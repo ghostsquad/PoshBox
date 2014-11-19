@@ -41,13 +41,14 @@ AddConsoleLogAppender
 . $here\PSUsing.ps1
 . $here\New-GenericObject.ps1
 . $here\New-PSObject.ps1
+. $here\Assert-ScriptBlockParametersEqual.ps1
 . $here\Get-ScriptBlockParams.ps1
 
 . $here\PSObject.Easy\Attach-PSNote.ps1
 . $here\PSObject.Easy\Attach-PSProperty.ps1
 . $here\PSObject.Easy\Attach-PSScriptMethod.ps1
 . $here\PSObject.Easy\PSCustomObjectExtensions.ps1
-#. $here\New-PSClass.ps1
+. $here\New-PSClass.ps1
 
 # Misc
 . $here\Add-TypeAccelerator.ps1

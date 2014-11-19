@@ -1,137 +1,66 @@
 ﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
-. "$here\TestCommon.ps1"
+. "$here\..\TestCommon.ps1"
 
-Describe "PSAddMember" {
-    Context "One Arg" {
-        It "Adds single note property given a hashtable" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $hashtable = @{$expectedName = $expectedValue}
-            $actualObject = new-object PSObject
-            [Void]$actualObject.PSAddMember($hashtable)
+Describe "Attach-PSProperty" {
+    BeforeEach {
+        $expectedPropertyName = "foo"
+        $expectedGetterScript = {return "bar"}
+        $expectedSetterScript = {return}
+    }
 
-            $actualObject.$expectedName | Should Be $expectedValue
-        }
+    Context "Given Name, GetScript" {
+        It "Attaches ScriptMethod with Getter" {
+            $expectedObject = New-PSObject
+            Attach-PSProperty $expectedObject $expectedPropertyName $expectedGetterScript
 
-        It "Adds multiple note propertie given a hashtable" {
-            $firstExpectedName = "prop1"
-            $firstExpectedValue = "value1"
-            $secondExpectedName = "prop2"
-            $secondExpectedValue = "value2"
-            $hashtable = @{
-                $firstExpectedName = $firstExpectedValue
-                $secondExpectedName = $secondExpectedValue
-            }
-            $actualObject = new-object PSObject
-            [Void]$actualObject.PSAddMember($hashtable)
+            $actualGetter = $expectedObject.psobject.properties[$expectedPropertyName].GetterScript
 
-            $actualObject.$firstExpectedName | Should Be $firstExpectedValue
-            $actualObject.$secondExpectedName | Should Be $secondExpectedValue
-        }
-
-        It "Throws an exception if inputobject is not IDictionary" {
-            $input = "foo"
-            $actualObject = new-object PSObject
-            { [Void]$actualObject.PSAddMember($input) } | Should Throw
-        }
-
-        It "Returns self" {
-            $hashtable = @{"foo" = "bar"}
-            $actualObject = new-object PSObject
-            $return = $actualObject.PSAddMember($hashtable)
-
-            $return | Should Be $actualObject
+            $actualGetter.ToString() | Should Be $expectedGetterScript.ToString()
         }
     }
 
-    Context "Two Args" {
-        It "Adds a Note Property" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $actualObject = new-object PSObject
+    Context "Given Name, Get, Set" {
+        It "Attaches ScriptProperty with Setter" {
+            $expectedObject = New-PSObject
+            Attach-PSProperty $expectedObject $expectedPropertyName {} $expectedSetterScript
 
-            [Void]$actualObject.PSAddMember($expectedName, $expectedValue)
-            $actualObject.$expectedName | Should Be $expectedValue
-        }
+            $actualSetter = $expectedObject.psobject.properties[$expectedPropertyName].SetterScript
 
-        It "Adds a scriptblock as a noteproperty" {
-            $expectedName = "foo"
-            $expectedValue = {return $expectedName}
-            $actualObject = new-object PSObject
-
-            [Void]$actualObject.PSAddMember($expectedName, $expectedValue)
-            $actualObject.$expectedName | Should Be $expectedValue
-            $actualObject.$expectedName.Invoke() | Should Be $expectedName
-        }
-
-        It "Returns self" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $actualObject = new-object PSObject
-            $return = $actualObject.PSAddMember($expectedName, $expectedValue)
-
-            $return | Should Be $actualObject
-        }
-
-        It "Throws if member already exists" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $actualObject = new-object PSObject
-            [Void]$actualObject.PSAddMember($expectedName, $expectedValue)
-            { $actualObject.PSAddMember($expectedName, $expectedValue) } | Should Throw
+            $actualSetter.ToString() | Should Be $expectedSetterScript.ToString()
         }
     }
 
-    Context "Three Args" {
-        It "Can add arbitrary membertype" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $actualObject = new-object PSObject
-            [Void]$actualObject.PSAddMember($expectedName, $expectedValue, "NoteProperty")
-
-            $actualObject.$expectedName | Should Be $expectedValue
-        }
-
-        It "Returns self" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $actualObject = new-object PSObject
-            $return = $actualObject.PSAddMember($expectedName, $expectedValue, "NoteProperty")
-
-            $return | Should Be $actualObject
-        }
-
-        It "Throws if member already exists" {
-            $expectedName = "foo"
-            $expectedValue = "bar"
-            $actualObject = new-object PSObject
-            [Void]$actualObject.PSAddMember($expectedName, $expectedValue, "NoteProperty")
-            { $actualObject.PSAddMember($expectedName, $expectedValue, "NoteProperty") } | Should Throw
+    Context "Given PassThru" {
+        It "returns inputobject" {
+            $expectedObject = New-PSObject
+            $actualObject = Attach-PSProperty $expectedObject "foo" {} {} -PassThru
+            { $actualObject.Equals($expectedObject) } | Should Be $true
         }
     }
-}
 
-Describe "PSOverrideScriptMethod" {
-    It "Overrides a scriptmethod if it already exists and has the same parameters" {
-        $expectedName = "foo"
-        $actualDefinition = {param($a) return "original"}
+    Context "Given Override" {
+        It "throws if existing property does not exist" {
+            $expectedObject = New-PSObject
+            $action = { Attach-PSProperty $expectedObject $expectedPropertyName {} {} -override }
+            $action | Should Throw
 
-        $actualObject = new-psobject
-        $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
+        }
 
-        [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a) return "new"})
+        It "overrides an existing property with same setter and getter" {
+            $expectedObject = New-PSObject
+            Attach-PSProperty $expectedObject $expectedPropertyName {} {}
+            Attach-PSProperty $expectedObject $expectedPropertyName $expectedGetterScript $expectedSetterScript -override
 
-        $actualObject.$expectedName() | Should Be "new"
-    }
+            $expectedObject.psobject.properties[$expectedPropertyName].GetterScript.ToString() | Should Be $expectedGetterScript.ToString()
+            $expectedObject.psobject.properties[$expectedPropertyName].SetterScript.ToString() | Should Be $expectedSetterScript.ToString()
+        }
 
-    It "Throws an expection if param definition is different" {
-        $expectedName = "foo"
-        $actualDefinition = {param($a)}
-
-        $actualObject = new-psobject
-        $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
-
-        { [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a, $b)}) } | Should Throw
+        It "throws if setter is missing from the original, and provided in override" {
+            $expectedObject = New-PSObject
+            Attach-PSProperty $expectedObject $expectedPropertyName {}
+            $action = { Attach-PSProperty $expectedObject $expectedPropertyName $expectedGetterScript $expectedSetterScript -override }
+            $action | Should Throw
+        }
     }
 }
