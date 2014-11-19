@@ -1,10 +1,3 @@
-
-# ===================================================================================
-# Inspired by Bruce Payette's "Windows PowerShell in Action"
-# Chapter 8 Script to add a CustomClass "keyword" to PowerShell
-# http://manning.com/payette/
-# ===================================================================================
-
 function New-PSClass {
     param (
         [string]$ClassName = $( Throw "ClassName required for New-PSClass" )
@@ -12,6 +5,7 @@ function New-PSClass {
       , $Inherit
     )
 
+    #region Class Definition Functions
     #======================================================================
     # These Subfunctions are used in Class Definition Scripts
     #======================================================================
@@ -22,13 +16,14 @@ function New-PSClass {
     # - - - - - - - - - - - - - - - - - - - - - - - -
     function constructor {
         param (
-            [scriptblock]$ctor = $(Throw "Script is required for 'constructor' in $ClassName")
+            [scriptblock]$scriptblock = $(Throw "scriptblock is required for 'constructor' in $ClassName")
         )
 
         if ($class.ConstructorScript) {
             Throw "Only one Constructor is allowed"
         }
-        $class.ConstructorScript = $ctor
+
+        $class.__ConstructorScript = $scriptblock
     }
 
     # - - - - - - - - - - - - - - - - - - - - - - - -
@@ -50,31 +45,11 @@ function New-PSClass {
 
             Attach-PSNote $class $name $value
         } else {
-            $class.Notes += @{Name=$name;DefaultValue=$value;Private=$private}
-        }
-    }
-
-    # - - - - - - - - - - - - - - - - - - - - - - - -
-    # Subfunction: method
-    #   Add a method script to Class definition or
-    #   attaches it to the Class if it is static
-    # - - - - - - - - - - - - - - - - - - - - - - - -
-    function method {
-        param  (
-            [string]$name = $(Throw "Name is required for 'method'")
-          , [scriptblock]$script = $(Throw "Script is required for 'method' $name in Class $ClassName")
-          , [switch]$static
-          , [switch]$private
-          , [switch]$override
-        )
-
-        if ($static) {
-            if ($private) {
-                Throw "Private Static Methods not supported"
+            if($class.__Notes[$name] -ne $null) {
+                throw (new-object System.InvalidOperationException("note with name: $Name cannot be added twice."))
             }
-            Attach-PSScriptMethod $class $name $script
-        } else {
-            $class.Methods[$name] = @{Name=$name;Script=$script;Private=$private;Override=$override}
+
+            $class.Notes[$name] = @{Name=$name;DefaultValue=$value;Private=$private}
         }
     }
 
@@ -99,44 +74,215 @@ function New-PSClass {
             }
             Attach-PSProperty $class $name $get $set
         } else {
-            $class.Properties[$name] = @{Name=$name;GetScript=$get;SetScript=$set;Private=$private;Override=$override}
+            if($class.__Properties[$name] -ne $null) {
+                throw (new-object System.InvalidOperationException("property with name: $Name cannot be added twice."))
+            }
+
+            $class.__Properties[$name] = @{Name=$name;GetScript=$get;SetScript=$set;Private=$private;Override=$override}
         }
     }
 
-    $class = New-Object PSObject
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Subfunction: method
+    #   Add a method script to Class definition or
+    #   attaches it to the Class if it is static
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    function method {
+        param  (
+            [string]$name = $(Throw "Name is required for 'method'")
+          , [scriptblock]$script = $(Throw "Script is required for 'method' $name in Class $ClassName")
+          , [switch]$static
+          , [switch]$private
+          , [switch]$override
+        )
+
+        if ($static) {
+            if ($private) {
+                Throw "Private Static Methods not supported"
+            }
+            Attach-PSScriptMethod $class $name $script
+        } else {
+            if($class.__Methods[$name] -ne $null) {
+                throw (new-object System.InvalidOperationException("method with name: $Name cannot be added twice."))
+            }
+
+            $class.__Methods[$name] = @{Name=$name;Script=$script;Private=$private;Override=$override}
+        }
+    }
+    #endregion Class Definition Functions
+
+    $class = New-PSObject
+
+    #region Class Internals
+    Attach-PSNote $class __ClassName $ClassName
+    Attach-PSNote $class __Notes @{}
+    Attach-PSNote $class __Methods @{}
+    Attach-PSNote $class __Properties @{}
+    Attach-PSNote $class __BaseClass $Inherit
+    Attach-PSNote $class __ConstructorScript
+
+}
+
+
+# ===================================================================================
+# Inspired by Bruce Payette's "Windows PowerShell in Action"
+# Chapter 8 Script to add a CustomClass "keyword" to PowerShell
+# http://manning.com/payette/
+# ===================================================================================
+
+function New-PSClass {
+    param (
+        [string]$ClassName = $( Throw "ClassName required for New-PSClass" )
+      , [scriptblock]$Definition = $( Throw "Definition required for New-PSClass" )
+      , $Inherit
+    )
+
+    #======================================================================
+    # These Subfunctions are used in Class Definition Scripts
+    #======================================================================
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Subfunction: constructor
+    #   Assigns Constructor script to Class
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    function constructor {
+        param (
+            [scriptblock]$scriptblock = $(Throw "scriptblock is required for 'constructor' in $ClassName")
+        )
+
+        if ($class.ConstructorScript) {
+            Throw "Only one Constructor is allowed"
+        }
+        $class.ConstructorScript = $scriptblock
+    }
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Subfunction: note
+    #   Adds Notes record to class if non-static
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    function note {
+        param (
+            [string]$name = $(Throw "Note Name is Required")
+          , [object]$value
+          , [switch]$static
+          , [switch]$private
+        )
+
+        if ($static) {
+            if ($private) {
+                Throw "Private Static Notes are not supported"
+            }
+
+            Attach-PSNote $class $name $value
+        } else {
+            if($class.__Notes[$name] -ne $null) {
+                throw (new-object System.InvalidOperationException("note with name: $Name cannot be added twice."))
+            }
+
+            $class.Notes[$name] = @{Name=$name;DefaultValue=$value;Private=$private}
+        }
+    }
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Subfunction: method
+    #   Add a method script to Class definition or
+    #   attaches it to the Class if it is static
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    function method {
+        param  (
+            [string]$name = $(Throw "Name is required for 'method'")
+          , [scriptblock]$script = $(Throw "Script is required for 'method' $name in Class $ClassName")
+          , [switch]$static
+          , [switch]$private
+          , [switch]$override
+        )
+
+        if ($static) {
+            if ($private) {
+                Throw "Private Static Methods not supported"
+            }
+            Attach-PSScriptMethod $class $name $script
+        } else {
+            if($class.__Methods[$name] -ne $null) {
+                throw (new-object System.InvalidOperationException("method with name: $Name cannot be added twice."))
+            }
+
+            $class.__Methods[$name] = @{Name=$name;Script=$script;Private=$private;Override=$override}
+        }
+    }
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Subfunction: property
+    #   Add a property to Class definition or
+    #   attaches it to the Class if it is static
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    function property {
+        param (
+            [string]$name
+          , [scriptblock]$get
+          , [scriptblock]$set
+          , [switch]$static
+          , [switch]$private
+          , [switch]$override
+        )
+
+        if ($static) {
+            if ($private) {
+                Throw "Private Static Properties not supported"
+            }
+            Attach-PSProperty $class $name $get $set
+        } else {
+            if($class.__Properties[$name] -ne $null) {
+                throw (new-object System.InvalidOperationException("property with name: $Name cannot be added twice."))
+            }
+
+            $class.__Properties[$name] = @{Name=$name;GetScript=$get;SetScript=$set;Private=$private;Override=$override}
+        }
+    }
+
+    $class = New-PSObject
 
     # Class Internals
-    Attach-PSNote $class ClassName $ClassName
-    Attach-PSNote $class Notes @()
-    Attach-PSNote $class Methods @{}
-    Attach-PSNote $class Properties @{}
-    Attach-PSNote $class BaseClass $Inherit
-    Attach-PSNote $class ConstructorScript
-    Attach-PSNote $class PrivateName "__$($ClassName)_Private"
+    Attach-PSNote $class __ClassName $ClassName
+    Attach-PSNote $class __Notes @{}
+    Attach-PSNote $class __Methods @{}
+    Attach-PSNote $class __Properties @{}
+    Attach-PSNote $class __BaseClass $Inherit
+    Attach-PSNote $class __ConstructorScript
+    Attach-PSNote $class __PrivateName ("__{0}_Private" -f $ClassName)
 
-    Attach-PSScriptMethod $class AttachTo {
-        function AttachAndInit($instance, [array]$parms) {
-            $instance = __PSClassAttachObject $this $instance
-            __PSClassInitialize $this $instance $parms
-            $instance
-        }
+    #Attach-PSScriptMethod $class __AttachTo {
+    #    param (
+    #        $type
+    #       ,[object[]]$params
+    #    )
 
-        $type = $Args[0].GetType()
-        [array]$parms = $Args[1]
-        if (($Args[0] -is [array]) -or ($Args[0] -is [System.Collections.ArrayList])) {
-            # This handles the attachment of an array of objects
-            $objects = $Args[0]
-            foreach($object in $objects) {
-                [Void](AttachAndInit $object $parms)
-            }
-        } else {
-            [Void](AttachAndInit $Args[0] $parms)
-        }
-    }
+    #    function AttachAndInit($instance, [object[]]$params) {
+    #        $instance = __PSClassAttachObject $this $instance
+    #        __PSClassInitialize $this $instance $params
+    #        $instance
+    #    }
+
+    #    $type = $Args[0].GetType()
+    #    [array]$parms = $Args[1]
+    #    if (($Args[0] -is [array]) -or ($Args[0] -is [System.Collections.ArrayList])) {
+    #        # This handles the attachment of an array of objects
+    #        $objects = $Args[0]
+    #        foreach($object in $objects) {
+    #            [Void](AttachAndInit $object $parms)
+    #        }
+    #    } else {
+    #        [Void](AttachAndInit $Args[0] $parms)
+    #    }
+    #}
 
     Attach-PSScriptMethod $class New {
-        $instance = new-object Management.Automation.PSObject
-        $this.AttachTo( $instance, $Args )
+        $constructorParameters = $Args
+
+        $instance = New-PSObject
+
+        $this.__AttachTo($instance, $constructorParameters)
+
         return $instance
     }
 
@@ -156,63 +302,6 @@ function New-PSClass {
 
     # return constructed class
     return $class
-}
-
-function Deserialize-PSClass ($deserialized) {
-    $class = $deserialized.Class
-
-    if(-not $class.AttachTo) {
-        Attach-PSScriptMethod $class AttachTo {
-            function AttachAndInit($instance) {
-                $instance = __PSClassAttachObject $this $instance
-                return $instance
-            }
-            AttachAndInit $Args[0]
-        }
-
-        Attach-PSScriptMethod $class __LookupClassObject {
-            __PSClassLookupClassObject $this $Args[0] $Args[1]
-        }
-
-        Attach-PSScriptMethod $class InvokeMethod {
-            __PSClassInvokeMethod $this $Args[0] $Args[1] $Args[2]
-        }
-
-        Attach-PSScriptMethod $class InvokeProperty {
-            __PSClassInvokePropertyMethod $this $Args[0] $Args[1] $Args[2] $Args[3]
-        }
-    }
-
-    $instance = new-object Management.Automation.PSObject
-    $instance = $class.AttachTo($instance)
-
-    foreach($note in $class.Notes) {
-        if(-not $note.Private) {
-            continue
-        }
-
-        $originalValue = $deserialized.$($deserialized.Class.PrivateName).$($note.Name)
-        if($originalValue.Class -is [array]) {
-            $value = @()
-            for($i = 0; $i -lt $originalValue.Class.Count; $i++) {
-                $value += @(Deserialize-PSClass $originalValue[$i])
-            }
-        } elseif($originalValue.Class) {
-            $value = Deserialize-PSClass $originalValue
-        } else {
-            $value = $originalValue
-        }
-
-        $instance.$($instance.Class.PrivateName).$($note.Name) = $value
-    }
-
-    foreach($note in $class.Notes) {
-        if(-not $note.Private) {
-            $instance.$($note.Name) = $deserialized.$($note.Name)
-        }
-    }
-
-    return $instance
 }
 
 # ===================================================================================
@@ -236,7 +325,7 @@ function __PSClassInitialize ($class, $instance, $params) {
         if ($class.ConstructorScript) {
             $constructor = $class.ConstructorScript
 
-            $private = $Instance.($class.privateName)
+            $private = $Instance.($Class.__PrivateName)
             $this = $instance
             $constructor.InvokeReturnAsIs( $params )
         }
@@ -244,8 +333,8 @@ function __PSClassInitialize ($class, $instance, $params) {
         $exception = $_
         if ( $exception.Message -match "Error Position:" ) {
             $errorMsg = $exception.Message
-		}
-		else {
+        }
+        else {
             $errorMsg = $exception.Message
             $errorMsg += $exception.ErrorRecord.InvocationInfo.PositionMessage
         }
@@ -259,20 +348,25 @@ function __PSClassInitialize ($class, $instance, $params) {
 # __PSClassAttachObject
 #    Attaches Notes, Methods, and Properties to Instance Object
 # ===================================================================================
-function __PSClassAttachObject ($Class, [PSObject] $Instance) {
-    # function AssurePrivate {
-        # param (
-            # $Class,
-            # $Instance
-        # )
+function __PSClassAttachObject {
+    param (
+        $Class
+       ,[PSObject]$Instance
+    )
 
-        # if ($Instance.psobject.properties.Item($Class.privateName) -eq $null) {
-            # Attach-PSNote $Instance ($Class.privateName) (new-object Management.Automation.PSObject)
-            # Attach-PSNote $Instance.($Class.privateName) __Parent
-        # }
+    function AssurePrivate {
+        param (
+            $Class,
+            $Instance
+        )
 
-        # $Instance.($Class.privateName).__Parent = $Instance
-    # }
+        if ($Instance.psobject.properties.Item($Class.__PrivateName) -eq $null) {
+            Attach-PSNote $Instance ($Class.__PrivateName) (New-PSObject)
+            Attach-PSNote $Instance.($Class.__PrivateName) __Parent
+        }
+
+        $Instance.($Class.__PrivateName).__Parent = $Instance
+    }
 
     # - - - - - - - - - - - - - - - - - - - - - - - -
     #  Attach BaseClass
@@ -286,11 +380,11 @@ function __PSClassAttachObject ($Class, [PSObject] $Instance) {
     # - - - - - - - - - - - - - - - - - - - - - - - -
     #  Attach Notes
     # - - - - - - - - - - - - - - - - - - - - - - - -
-    #AssurePrivate $Class $Instance
+    AssurePrivate $Class $Instance
 
     foreach ($note in $Class.Notes) {
         if ($note.private) {
-            Attach-PSNote $instance.($Class.privateName) $note.Name $note.DefaultValue
+            Attach-PSNote $instance.($Class.__PrivateName) $note.Name $note.DefaultValue
         } else {
             Attach-PSNote $instance $note.Name $note.DefaultValue
         }
@@ -308,8 +402,8 @@ function __PSClassAttachObject ($Class, [PSObject] $Instance) {
         # pointing to the instance object. $ObjectString resolves
         # this for InvokeMethod
         if ($method.private) {
-            #AssurePrivate
-            $targetObject = $instance.($Class.privateName)
+            AssurePrivate
+            $targetObject = $instance.($Class.__PrivateName)
             $ObjectString = '$this.__Parent'
         } else {
             $targetObject = $instance
@@ -337,7 +431,7 @@ function __PSClassAttachObject ($Class, [PSObject] $Instance) {
         # this for InvokeMethod
         if ($Property.private) {
             AssurePrivate
-            $targetObject = $instance.($Class.privateName)
+            $targetObject = $instance.($Class.__PrivateName)
             $ObjectString = '$this.__Parent'
         } else {
             $targetObject = $instance
@@ -409,7 +503,7 @@ function __PSClassInvokeScript ($class, $script, $object, [array]$parms ){
     try {
 
         $this = $object
-        $private = $this.($Class.privateName)
+        $private = $this.($Class.__PrivateName)
 
         if($script -is [string]) {
             [ScriptBlock]::Create($script).InvokeReturnAsIs( $parms )
@@ -421,8 +515,8 @@ function __PSClassInvokeScript ($class, $script, $object, [array]$parms ){
         $exception = $_
         if ( $exception.Message -match "Error Position:" ) {
             $errorMsg = $exception.Message
-		}
-		else {
+        }
+        else {
             $errorMsg = $exception.Message
             $errorMsg += $exception.ErrorRecord.InvocationInfo.PositionMessage
         }
@@ -464,58 +558,4 @@ function __PSClassInvokePropertyMethod ($Class, $PropertyType, $PropertyName, $i
     } else {
         __PSClassInvokeScript $FoundClass $property.SetScript $instance $parms
     }
-}
-
-# ===================================================================================
-function Attach-PSNote {
-    param ( [PSObject]$object=$(Throw "Object is required")
-        , [string]$name=$(Throw "Note Name is Required")
-        , $value
-    )
-
-    if (! $object.psobject.members[$name]) {
-        $member = new-object management.automation.PSNoteProperty $name,$value
-        $object.psobject.members.Add($member)
-    }
-
-    if($value -ne $null) {
-        $object.$name = $value
-    }
-}
-
-# ===================================================================================
-function Attach-PSScriptMethod {
-    param ( [PSObject]$object=$(Throw "Object is required")
-        , [string]$name=$(Throw "Method Name is Required")
-        , [scriptblock] $script
-        , [switch] $override
-    )
-
-    if($override) {
-        [Void]$object.PSOverrideScriptMethod($name, $script)
-    } else {
-        [Void]$object.PSAddScriptMethod($name, $script)
-    }
-}
-
-# ===================================================================================
-function Attach-PSProperty {
-    param ( [PSObject]$object=$(Throw "Object is required")
-        , [string]$name=$(Throw "Method Name is Required")
-        , [scriptblock] $get=$(Throw "get script is required on property $name in Class $ClassName")
-        , [scriptblock] $set
-        , [switch] $override
-    )
-
-    if ($set) {
-        $scriptProperty = new-object management.automation.PsScriptProperty $name,$get,$set
-    } else {
-        $scriptProperty = new-object management.automation.PsScriptProperty $name,$get
-    }
-
-    if ( $object.psobject.properties[$name] -and $override) {
-        $object.psobject.properties.Remove($name)
-    }
-
-    $object.psobject.properties.add($scriptProperty)
 }

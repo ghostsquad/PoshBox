@@ -4,18 +4,19 @@
 # $hash = @{q3=4; q4="Q4"; q5=(gsv alg)}
 # $p.PSAddMember($hash)
 
-Update-TypeData -TypeName System.Object `
+Update-TypeData -TypeName System.Management.Automation.PSObject `
     -MemberType ScriptMethod `
     -MemberName PSAddNoteProperty `
     -Value {
         switch ($args.count)  {
             1 {
-                Add-Member -InputObject $this -NotePropertyMembers $args[0] -Force -Passthru
+                Add-Member -InputObject $this -NotePropertyMembers $args[0] -Passthru
+                breal
             }
 
             2 {
                 $name,$value = $args
-                Add-Member -InputObject $this -NotePropertyName $name -NotePropertyValue $value -Force -Passthru
+                Attach-PSNote $this $name $value -Passthru
             }
 
             default { throw "No overload for PSAddNoteProperty takes the specified number of parameters." }
@@ -23,16 +24,16 @@ Update-TypeData -TypeName System.Object `
     } `
     -Force
 
-Update-TypeData -TypeName System.Object `
+Update-TypeData -TypeName System.Management.Automation.PSObject `
     -MemberType ScriptMethod `
     -MemberName PSAddScriptProperty `
     -Value {
-        if($args.count -eq 3) {
-            $name,$getter,$setter = $args
-            Add-Member -InputObject $this -Name $name -Value $getter -SecondValue $setter -MemberType ScriptProperty -Force -Passthru
-        } else {
+        if($args.count -lt 1 -or $args.Count -gt 2) {
             throw (new-object System.InvalidOperationException("No overload for PSAddScriptProperty takes the specified number of parameters."))
         }
+
+        $name,$getter,$setter = $args
+        PS-AttachProperty $this $name $getter $setter -Passthru
     } `
     -Force
 
@@ -42,14 +43,14 @@ Update-TypeData -TypeName System.Object `
     -Value {
         if($args.count -eq 2) {
             $name,$scriptblock = $args
-            Add-Member -InputObject $this -Name $name -Value $scriptblock -MemberType ScriptMethod -Force -Passthru
+            PS-AttachScriptMethod $this $name $scriptblock -Passthru
         } else {
             throw (new-object System.InvalidOperationException("No overload for PSAddScriptMethod takes the specified number of parameters."))
         }
     } `
     -Force
 
-Update-TypeData -TypeName System.Object `
+Update-TypeData -TypeName System.Management.Automation.PSObject `
     -MemberType ScriptMethod `
     -MemberName PSAddMember `
     -Value {
@@ -59,12 +60,12 @@ Update-TypeData -TypeName System.Object `
             }
 
             2 {
-                $this.PSAddNoteProperty($args[0], $args[1])
+                Attach-PSNote $this $args[0] $args[1]
             }
 
             3 {
                 $name,$value,$memberType = $args
-                Add-Member -InputObject $this -Name $name -Value $value -MemberType $memberType -Force -Passthru
+                Add-Member -InputObject $this -Name $name -Value $value -MemberType $memberType -Passthru
             }
 
             default { throw "No overload for PSAddMember takes the specified number of parameters." }
@@ -72,30 +73,12 @@ Update-TypeData -TypeName System.Object `
     } `
     -Force
 
-Update-TypeData -TypeName System.Object `
+Update-TypeData -TypeName System.Management.Automation.PSObject `
     -MemberType ScriptMethod `
     -MemberName PSOverrideScriptMethod `
     -Value {
         if($args.count -eq 2) {
-            $name,$scriptblock = $args
-            $originalMethod = $this.psobject.Methods[$name]
-            if($originalMethod -ne $null) {
-                $newMethodParams = Get-ScriptBlockParams $scriptblock
-                $originalMethodParams = Get-ScriptBlockParams $originalMethod.Script
-                if($newMethodParams.Count -ne $originalMethodParams.Count) {
-                    throw "param count mismatch!"
-                }
-
-                for($i = 0; $i -lt $originalMethodParams.Count; $i++) {
-                    if($originalMethodParams[$i].Value -ne $newMethodParams[$i].Value) {
-                        throw ("param type mismatch. Found {0} but was expecting {1}." -f $newMethodParams[$i].Value, $originalMethodParams[$i].Value)
-                    }
-                }
-
-                $this.PSAddScriptMethod($name, $scriptblock)
-            } else {
-                throw (new-object System.InvalidOperationException("Could not find a method with name: $name"))
-            }
+            Attach-PSScriptMethod $this $args[0] $args[1] -override
         } else {
             throw (new-object System.InvalidOperationException("No overload for PSOverrideScriptMethod takes the specified number of parameters."))
         }
