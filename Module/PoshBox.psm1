@@ -55,6 +55,7 @@ AddConsoleLogAppender
 . $here\PSObject.Easy\Attach-PSScriptMethod.ps1
 . $here\PSObject.Easy\PSCustomObjectExtensions.ps1
 . $here\New-PSClass.ps1
+. $here\New-PSClassMock.ps1
 
 # Misc
 . $here\New-PSCredential.ps1
