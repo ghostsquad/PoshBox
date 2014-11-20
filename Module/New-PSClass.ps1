@@ -19,7 +19,7 @@ function New-PSClass {
             [scriptblock]$scriptblock = $(Throw "Constuctor scriptblock is required.")
         )
 
-        if ($class.ConstructorScript) {
+        if ($class.__ConstructorScript -ne $null) {
             Throw "Only one Constructor is allowed"
         }
 
@@ -129,7 +129,7 @@ function New-PSClass {
     Attach-PSNote $class __Methods @{}
     Attach-PSNote $class __Properties @{}
     Attach-PSNote $class __BaseClass $Inherit
-    Attach-PSNote $class __ConstructorScript {}
+    Attach-PSNote $class __ConstructorScript
 
     # This is how the caller can create a new instance of this class
     Attach-PSScriptMethod $class "New" {
@@ -150,7 +150,9 @@ function New-PSClass {
 
         PSClass_AttachMembersToInstanceObject $instance $this
 
-        PSClass_RunConstructor $instance $this.__ConstructorScript $constructorParameters
+        if($this.__ConstructorScript -ne $null) {
+            PSClass_RunConstructor $instance $this.__ConstructorScript $constructorParameters
+        }
 
         return $instance
     }
