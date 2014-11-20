@@ -58,6 +58,46 @@ Describe "New-PSClass" {
             $testObj = $testClass.New()
             $testObj.foo | Should Be "set by constructor"
         }
+
+        It "calls base constructor when available" {
+            $testBaseClass = New-PSClass "testBase" {
+                note "_foo" "default"
+                constructor {
+                    $this._foo = $args[0]
+                }
+            }
+
+            $derivedClass = New-PSClass "derived" -inherit $testBaseClass {
+
+            }
+
+            $expectedValue = "derived"
+
+            $derived = $derivedClass.New($expectedValue)
+            $derived._foo | Should Be $expectedValue
+        }
+
+        It "calls base constructor first then derived constructor with same args" {
+            $testBaseClass = New-PSClass "testBase" {
+                note "_foo" "default"
+                note "_basenote"
+                constructor {
+                    $this._basenote = "base"
+                }
+            }
+
+            $derivedClass = New-PSClass "derived" -inherit $testBaseClass {
+                constructor {
+                    $this._foo = "derived"
+                }
+            }
+
+            $expectedValue = "derived"
+
+            $derived = $derivedClass.New($expectedValue)
+            $derived._foo | Should Be $expectedValue
+            $derived._basenote | Should Be "base"
+        }
     }
 
     Context "Construction - Rainy" {

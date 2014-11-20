@@ -142,10 +142,10 @@ function New-PSClass {
             Set-Variable -Name "instance" -Value (New-PSObject) -Scope Private
         }
 
-        if($Instance.psobject.members["__Class"] -eq $null){
-            Attach-PSNote $Instance __Class $this.__ClassName
+        if($instance.psobject.members["__Class"] -eq $null){
+            Attach-PSNote $instance __Class $this.__ClassName
         } else {
-            $Instance.__Class += (".{0}" -f $this.__ClassName)
+            $instance.__Class += (".{0}" -f $this.__ClassName)
         }
 
         PSClass_AttachMembersToInstanceObject $instance $this
