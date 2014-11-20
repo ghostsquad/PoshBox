@@ -155,7 +155,17 @@ function New-PSClass {
         return $instance
     }
 
-    [Void]($Definition.InvokeReturnAsIs())
+    # invoking the scriptblock directly without first converting it to a string
+    # does not reliably use the current context, thus the internal methods:
+    # constructor, method, note, property
+    # cannot be found
+    #
+    # The following has been tested and don't work at all or reliably
+    # $Definition.getnewclosure().Invoke()
+    # $Definition.getnewclosure().InvokeReturnAsIs()
+    # & $Definition.getnewclosure()
+    # & $Definition
+    [Void]([ScriptBlock]::Create($Definition.ToString()).InvokeReturnAsIs())
 
     return $class
 }

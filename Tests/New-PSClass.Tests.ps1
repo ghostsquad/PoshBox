@@ -2,6 +2,13 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
 . "$here\TestCommon.ps1"
 
+function GetTestClass {
+    return (New-PSClass "TestClass" {
+        method "testMethodNoParams" { return "base" }
+        note "foo" "base"
+    })
+}
+
 Describe "New-PSClass" {
     Context "GivenStaticMethod" {
         It "runs provided script block" {
@@ -15,14 +22,8 @@ Describe "New-PSClass" {
     }
 
     Context "GivenBaseClass" {
-        BeforeEach {
-            $testClass = New-PSClass "TestClass" {
-                method "testMethodNoParams" { return "base" }
-                note "foo" "base"
-            }
-        }
-
         It "can override method with empty params" {
+            $testClass = GetTestClass
             $derivedClass = New-PSClass "derivedClass" -inherit $testClass {
                 method -override "testMethodNoParams" { return "expected" }
             }
@@ -32,12 +33,14 @@ Describe "New-PSClass" {
         }
 
         It "can call non overridden base method" {
+            $testClass = GetTestClass
             $derivedClass = New-PSClass "derivedClass" -inherit $testClass {}
             $newDerived = $derivedClass.New()
             $newDerived.testMethodNoParams() | Should Be "base"
         }
 
         It "can call non overridden base note" {
+            $testClass = GetTestClass
             $derivedClass = New-PSClass "derivedClass" -inherit $testClass {}
             $newDerived = $derivedClass.New()
             $newDerived.foo | Should Be "base"

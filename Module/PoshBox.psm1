@@ -44,6 +44,12 @@ AddConsoleLogAppender
 . $here\Assert-ScriptBlockParametersEqual.ps1
 . $here\Get-ScriptBlockParams.ps1
 
+. $here\Add-TypeAccelerator.ps1
+. $here\ConvertTo-Hash.ps1
+. $here\Get-Delegate.ps1
+. $here\Get-DelegateType.ps1
+. $here\Invoke-Generic.ps1
+
 . $here\PSObject.Easy\Attach-PSNote.ps1
 . $here\PSObject.Easy\Attach-PSProperty.ps1
 . $here\PSObject.Easy\Attach-PSScriptMethod.ps1
@@ -51,11 +57,6 @@ AddConsoleLogAppender
 . $here\New-PSClass.ps1
 
 # Misc
-. $here\Add-TypeAccelerator.ps1
-. $here\ConvertTo-Hash.ps1
-. $here\Get-Delegate.ps1
-. $here\Get-DelegateType.ps1
-. $here\Invoke-Generic.ps1
 . $here\New-PSCredential.ps1
 
 # Logging
@@ -87,5 +88,4 @@ AddConsoleLogAppender
 . $here\Development\Set-EncodingUtf8NoBom.ps1
 
 Export-ModuleMember -Function *-*
-#Export-ModuleMember -Function New-PSClass
 Export-ModuleMember -Function PSUsing
