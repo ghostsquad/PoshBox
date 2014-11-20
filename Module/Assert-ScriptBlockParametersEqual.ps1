@@ -8,15 +8,19 @@ function Assert-ScriptBlockParametersEqual {
         throw "Null ScriptBlock found."
     }
 
-    $xParams = Get-ScriptBlockParams $x
-    $yParams = Get-ScriptBlockParams $y
+    $xParams = @(?: {$x.Ast.ParamBlock -ne $null} {$x.Ast.ParamBlock.Parameters} {})
+    $yParams = @(?: {$y.Ast.ParamBlock -ne $null} {$y.Ast.ParamBlock.Parameters} {})
     if($xParams.Count -ne $yParams.Count) {
         throw "param count mismatch!"
     }
 
     for($i = 0; $i -lt $xParams.Count; $i++) {
-        if($xParams[$i].Value -ne $yParams[$i].Value) {
-            throw ("param type mismatch. Found {0} but was expecting {1}." -f $yParams[$i].Value, $xParams[$i].Value)
+        if($xParams[$i].StaticType -ne $yParams[$i].StaticType) {
+            throw ("param type mismatch. x: {0} y: {1}." -f $yParams[$i].StaticType, $xParams[$i].StaticType)
+        }
+
+        if($xParams[$i].Name.ToString() -ne $yParams[$i].Name.ToString()) {
+            throw ("param name mismatch. x: {0} y: {1}." -f $yParams[$i].Name, $xParams[$i].Name)
         }
     }
 }

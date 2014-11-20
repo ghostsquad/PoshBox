@@ -42,7 +42,6 @@ AddConsoleLogAppender
 . $here\New-GenericObject.ps1
 . $here\New-PSObject.ps1
 . $here\Assert-ScriptBlockParametersEqual.ps1
-. $here\Get-ScriptBlockParams.ps1
 
 . $here\Add-TypeAccelerator.ps1
 . $here\ConvertTo-Hash.ps1
