@@ -15,7 +15,7 @@ Describe "New-PSClassMock" {
             $mock = New-PSClassMock $testClass -Strict
             $errorRecord = $null
             try {
-                $mock.foo()
+                $mock.Object.foo()
             } catch {
                 $errorRecord = $_
             }
@@ -44,7 +44,7 @@ Describe "New-PSClassMock" {
                     return "bar"
                 }
             }
-            $mock.foo() | Should Be "bar"
+            $mock.Object.foo() | Should Be "bar"
         }
     }
 
@@ -57,10 +57,8 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo" -VerifyParams @(1)
+                method "foo"
             }
-
-            { $mock.foo(2) } | Should Throw
         }
 
         It "Given VerifyParams, does not throw when parameter is equivalent" {
@@ -71,17 +69,19 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo" -VerifyParams @(1)
+                method "foo" -AnyParams
             }
 
-            { $mock.foo(1) } | Should Not Throw
+            { $mock.Object.foo(1) } | Should Not Throw
         }
 
         $verifyParamsInputDiff = @(
             @{a = 1; b = 2},
             @{a = 2; b = 1},
             @{a = 1; b = $null},
-            @{a = 1; b = "I'm different"}
+            @{a = 1; b = "I'm different"},
+            @{a = {param($n) $n -eq 2}; b = 1}
+            @{a = {param($n) $n -eq 1}; b = {param($n) $n -eq 2};}
         )
         It "Given VerifyParams and multiple params, throws if any param is not equivalent to expectations" `
             -TestCases $verifyParamsInputDiff {
@@ -95,10 +95,12 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo" -VerifyParams @(1,1)
+                method "foo"
             }
 
-            { $mock.foo($a,$b) } | Should Throw
+            [Void]($mock.Object.foo(1,1))
+
+            { $mock.Verify('foo', @($a, $b)) } | Should Throw
         }
 
         It "Given VerifyParams and multiple params, does not throw only if all params are equivalent to expectations" {
@@ -109,10 +111,12 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo" -VerifyParams @(1,1)
+                method "foo" {param($a, $b)}
             }
 
-            { $mock.foo(1,1) } | Should Throw
+            [Void]($mock.Object.foo(1,1))
+
+            { $mock.Verify('foo', @(1,1)) } | Should Not Throw
         }
     }
 }
