@@ -4,5 +4,5 @@ function New-PSObject {
         [System.Collections.Hashtable]$Property
     )
 
-    Write-Output (new-object PSObject -Property $Property)
+    return (new-object PSObject -Property $Property)
 }

@@ -2,17 +2,17 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$here\TestCommon.ps1"
 
 Describe "New-PSClassMock" {
-    BeforeEach {
-        $testClass = New-PSClass "testClass" {
-            method "foo" {
-                throw "not implemented"
+    Context "Creation" {
+        BeforeEach {
+            $testClass = New-PSClass "testClass" {
+                method "foo" {
+                    throw "not implemented"
+                }
             }
         }
-    }
-
-    Context "Creation" {
         It "Given -Strict expects methods to have an expectation" {
             $mock = New-PSClassMock $testClass -Strict
+
             $errorRecord = $null
             try {
                 $mock.Object.foo()
@@ -20,7 +20,8 @@ Describe "New-PSClassMock" {
                 $errorRecord = $_
             }
 
-            $errorRecord.Exception.InnerException.InnerException.GetType() | Should Be ([PSMockException])
+            ($errorRecord -eq $null) | Should Be $false
+            $errorRecord.Exception.GetBaseException().GetType() | Should Be ([PSMockException])
         }
 
         It "Throws if mocked method parameters don't match" {
@@ -33,9 +34,16 @@ Describe "New-PSClassMock" {
     }
 
     Context "Usage - Mocking Methods" {
+        BeforeEach {
+            $testClass = New-PSClass "testClass" {
+                method "foo" {
+                    throw "not implemented"
+                }
+            }
+        }
         It "Given Basic Mock, mocked class methods are not called" {
             $mock = New-PSClassMock $testClass
-            { $mock.foo() } | Should Not Throw
+            { $mock.Object.foo() } | Should Not Throw
         }
 
         It "Calls mocked method" {
@@ -44,6 +52,9 @@ Describe "New-PSClassMock" {
                     return "bar"
                 }
             }
+
+            $mockedObject = $mock.Object
+
             $mock.Object.foo() | Should Be "bar"
         }
     }
@@ -57,8 +68,14 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo"
+                method "foo" {
+                    param($a)
+                }
             }
+
+            [Void]$mock.Object.foo(1)
+
+            { $mock.Verify("foo", 2) } | Should Throw
         }
 
         It "Given VerifyParams, does not throw when parameter is equivalent" {
@@ -69,10 +86,14 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo" -AnyParams
+                method "foo" {
+                    param($a)
+                }
             }
 
-            { $mock.Object.foo(1) } | Should Not Throw
+            [void]$mock.Object.foo(1)
+
+            { $mock.Verify('foo', 1) } | Should Not Throw
         }
 
         $verifyParamsInputDiff = @(
@@ -95,10 +116,12 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo"
+                method "foo" {
+                    param($a, $b)
+                }
             }
 
-            [Void]($mock.Object.foo(1,1))
+            [Void]$mock.Object.foo(1,1)
 
             { $mock.Verify('foo', @($a, $b)) } | Should Throw
         }
@@ -111,10 +134,12 @@ Describe "New-PSClassMock" {
             }
 
             $mock = New-PSClassMock $testClass {
-                method "foo" {param($a, $b)}
+                method "foo" {
+                    param($a, $b)
+                }
             }
 
-            [Void]($mock.Object.foo(1,1))
+            [Void]$mock.Object.foo(1,1)
 
             { $mock.Verify('foo', @(1,1)) } | Should Not Throw
         }
