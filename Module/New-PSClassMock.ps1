@@ -12,12 +12,8 @@ function New-PSClassMock {
             [string]$name = $(Throw "Method Name is required.")
           , [scriptblock]$script = {}
         )
-        $mock._mockedMethods[$name] = New-PSObject @{script=$script;calls=@()}
+        $mock._mockedMethods[$name] = $mockMethodInfoClass.New($mock, $name, $script)
     }
-
-    function constructor {}
-    function note {}
-    function property {}
 
     $mock = New-PSObject
     Attach-PSNote $mock '_strict' ([bool]$Strict)
@@ -33,12 +29,23 @@ function New-PSClassMock {
 
         $this._initialized = $true
 
-        if ($this._constructorArgs.Count -gt 10) {
-            throw (new-object PSMockException("PSClassMock does not support more than 10 constructor arguments at this time."))
-        }
-
         $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10 = $this._constructorArgs
-        $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10)
+        switch($this._constructorArgs.Count) {
+            0 { $this._object = $this._mockedClass.New() }
+            1 { $this._object = $this._mockedClass.New($p1) }
+            2 { $this._object = $this._mockedClass.New($p1, $p2) }
+            3 { $this._object = $this._mockedClass.New($p1, $p2, $p3) }
+            4 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4) }
+            5 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5) }
+            6 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6) }
+            7 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7) }
+            8 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8) }
+            9 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
+            10 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10) }
+            default {
+                throw (new-object PSMockException("PSClassMock does not support more than 10 constructor arguments at this time."))
+            }
+        }
 
         Attach-PSNote $this._object '____mock' $this
 
@@ -81,8 +88,8 @@ function New-PSClassMock {
         }
 
         foreach($expectation in $expectations) {
-            foreach($call in $mockedMethod.calls) {
-                foreach($callArg in $call){
+            foreach($callArgsCollection in $mockedMethod.Invocations) {
+                foreach($callArg in $callArgsCollection){
                     Assert-True $callArg $expectation
                 }
             }
@@ -111,12 +118,7 @@ function New-PSClassMock {
         }
         else {
             Assert-ScriptBlockParametersEqual $methodToMockScript $mockedMethodScript
-            $scriptBlockStringFormat = '$this.____mock._mockedMethods[''{0}''].calls += $Args;' +`
-                '$p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10 = $Args;' +`
-                '{{ {1} }}.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10)'
-
-            $scriptBlockText = [string]::Format($scriptBlockStringFormat, $methodName, $mockedMethodScript)
-
+            $scriptBlockText = [string]::Format('$this.____mock._mockedMethods[''{0}''].Invoke($Args)', $methodName)
             $mockedMethodScript = [ScriptBlock]::Create($scriptBlockText)
         }
 
@@ -132,6 +134,27 @@ function New-PSClassMock {
     }
 
     return $mock
+}
+
+$mockMethodInfoClass = New-PSClass 'MockMethodInfo' {
+    note 'Name'
+    note 'Script'
+    note 'Invocations' (New-Object System.Collections.ArrayList)
+    note 'PSClassMock'
+
+    constructor {
+        param($psClassMock, $name, $script = {})
+
+        $this.PSClassMock = $psClassMock
+        $this.Name = $name
+        $this.Script = $script
+    }
+
+    method 'Invoke' {
+        [void]$this.Invocations.Add(@($args))
+        $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10 = $args
+        $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10)
+    }
 }
 
 if (-not ([System.Management.Automation.PSTypeName]'PSMockException').Type)

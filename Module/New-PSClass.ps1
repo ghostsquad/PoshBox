@@ -96,7 +96,6 @@ function New-PSClass {
             [string]$name = $(Throw "Method Name is required.")
           , [scriptblock]$script = $(Throw "Method Script is required.")
           , [switch]$static
-          , [switch]$private
           , [switch]$override
         )
 
@@ -133,13 +132,13 @@ function New-PSClass {
 
     # This is how the caller can create a new instance of this class
     Attach-PSScriptMethod $class "New" {
-        Set-Variable -Name "constructorParameters" -Value $args -Scope Private
+        $private:constructorParameters = $args
 
         if($this.__BaseClass -ne $null) {
-            Set-Variable -Name "instance" -Value $this.__BaseClass.New($args) -Scope Private
+            $private:instance = $this.__BaseClass.New($args)
         }
         else {
-            Set-Variable -Name "instance" -Value (New-PSObject) -Scope Private
+            $private:instance = New-PSObject
         }
 
         if($instance.psobject.members["__Class"] -eq $null){
