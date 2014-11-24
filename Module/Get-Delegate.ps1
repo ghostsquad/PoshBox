@@ -53,7 +53,7 @@ For a method with no overloads, we will choose the default method and create a c
         [validatenotnull()]
         [allowemptycollection()]
         [Alias("types")]
-        [type[]]$ParameterType = @(),
+        [type[]]$ParameterType = (New-Object Type[] 0),
 
         [parameter(mandatory=$true, parametersetname="FromDelegate")]
         [validatenotnull()]

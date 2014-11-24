@@ -34,6 +34,7 @@ function New-PSClass {
         param (
             [string]$name = $(Throw "Note Name is required.")
           , [object]$value
+          , [Type]$type = ([object])
           , [switch]$static
         )
 
@@ -62,6 +63,7 @@ function New-PSClass {
             [string]$name
           , [scriptblock]$get
           , [scriptblock]$set
+          , [Type]$returnType = ([object])
           , [switch]$static
           , [switch]$override
         )
@@ -95,12 +97,14 @@ function New-PSClass {
         param  (
             [string]$name = $(Throw "Method Name is required.")
           , [scriptblock]$script = $(Throw "Method Script is required.")
+          , [Type]$returnType = ([object])
           , [switch]$static
           , [switch]$override
         )
 
         if ($static) {
-            Attach-PSScriptMethod $class $name $script
+            $scriptDelegate = GetDelegateFromScriptDefinition $script $returnType
+            Attach-PSScriptMethod $class $name $scriptDelegate
         } else {
             if($class.__Methods[$name] -ne $null) {
                 throw (new-object System.InvalidOperationException("Method with name: $Name cannot be added twice."))
@@ -115,7 +119,9 @@ function New-PSClass {
                 }
             }
 
-            $class.__Methods[$name] = @{Name=$name;Script=$script;Override=$override}
+            $scriptDelegate = GetDelegateFromScriptDefinition $script $returnType
+
+            $class.__Methods[$name] = @{Name=$name;Script=$scriptDelegate;Override=$override}
         }
     }
     #endregion Class Definition Functions
@@ -147,6 +153,10 @@ function New-PSClass {
             $instance.__Class += (".{0}" -f $this.__ClassName)
         }
 
+        if($instance.psobject.members["____MethodInfos____"] -eq $null) {
+            Attach-PSNote $instance ____MethodInfos____ @{}
+        }
+
         PSClass_AttachMembersToInstanceObject $instance $this
 
         if($this.__ConstructorScript -ne $null) {
@@ -164,6 +174,7 @@ function New-PSClass {
     # The following has been tested and don't work at all or reliably
     # $Definition.getnewclosure().Invoke()
     # $Definition.getnewclosure().InvokeReturnAsIs()
+    # $Definition.Invoke()
     # & $Definition.getnewclosure()
     # & $Definition
     [Void]([ScriptBlock]::Create($Definition.ToString()).InvokeReturnAsIs())
@@ -206,6 +217,42 @@ function PSClass_AttachMembersToInstanceObject {
     }
 }
 
+$psClassMethodInfoClass = New-PSClass 'PSClassMethodInfo' {
+    note 'Name'
+    note 'Action'
+    note 'Script'
+    note 'GeneratedDelegate'
+
+    constructor {
+        param($name)
+
+        $this.Name = $name
+        $this.Script = $script
+    }
+
+    method 'Invoke' {
+        [void]$this.Invocations.Add(@($args))
+
+        $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10 = $args
+        switch($args.Count) {
+            0 { return $this.Script.InvokeReturnAsIs() }
+            1 { return $this.Script.InvokeReturnAsIs($p1) }
+            2 { return $this.Script.InvokeReturnAsIs($p1, $p2) }
+            3 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3) }
+            4 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4) }
+            5 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5) }
+            6 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6) }
+            7 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7) }
+            8 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8) }
+            9 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
+            10 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10) }
+            default {
+                throw (new-object PSMockException("PSClassMock does not support more than 10 arguments for a method mock at this time."))
+            }
+        }
+    }
+}
+
 function PSClass_RunConstructor {
     param (
         [PSObject]$This,
@@ -214,4 +261,16 @@ function PSClass_RunConstructor {
     )
 
     [Void]($Constructor.InvokeReturnAsIs($ConstructorParameters))
+}
+
+function GetDelegateFromScriptDefinition {
+    param (
+        [scriptblock]$script,
+        [Type]$returnType
+    )
+    $paramDefinitions = @(?: {$script.Ast.ParamBlock -ne $null} {$script.Ast.ParamBlock.Parameters} {})
+    [Type[]]$types = New-Object Type[] ($paramDefinitions.Count + 1)
+    $types[$paramDefinitions.Count] = $returnType
+    $delegateType = [System.Linq.Expressions.Expression]::GetDelegateType($types)
+    return ($script -as $delegateType)
 }
