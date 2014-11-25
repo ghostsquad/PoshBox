@@ -98,6 +98,43 @@ Describe "New-PSClass" {
             $derived._foo | Should Be $expectedValue
             $derived._basenote | Should Be "base"
         }
+
+        It "can use multiple constructor arguments" {
+            $testClass = New-PSClass "test" {
+                note "_foo" "default"
+                note "_bar" "default"
+                constructor {
+                    param($a, $b)
+                    $this._foo = $a
+                    $this._bar = $b
+                }
+            }
+
+            $expectedFoo = "expected foo"
+            $expectedBar = "expected bar"
+
+            $instance = $testClass.New($expectedFoo, $expectedBar)
+            $instance._foo | Should Be $expectedFoo
+            $instance._bar | Should Be $expectedBar
+        }
+
+        It "can use constructor args auto variable" {
+            $testClass = New-PSClass "test" {
+                note "_foo" "default"
+                note "_bar" "default"
+                constructor {
+                    $this._foo = $args[0]
+                    $this._bar = $args[1]
+                }
+            }
+
+            $expectedFoo = "expected foo"
+            $expectedBar = "expected bar"
+
+            $instance = $testClass.New($expectedFoo, $expectedBar)
+            $instance._foo | Should Be $expectedFoo
+            $instance._bar | Should Be $expectedBar
+        }
     }
 
     Context "Construction - Rainy" {
