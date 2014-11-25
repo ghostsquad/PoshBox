@@ -132,16 +132,16 @@ $mockMethodInfoClass = New-PSClass 'MockMethodInfo' {
 
         $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10 = $args
         switch($args.Count) {
-            0 { return $this.Script.InvokeReturnAsIs() }
-            1 { return $this.Script.InvokeReturnAsIs($p1) }
-            2 { return $this.Script.InvokeReturnAsIs($p1, $p2) }
-            3 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3) }
-            4 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4) }
-            5 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5) }
-            6 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6) }
-            7 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7) }
-            8 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8) }
-            9 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
+            0 {  return $this.Script.InvokeReturnAsIs() }
+            1 {  return $this.Script.InvokeReturnAsIs($p1) }
+            2 {  return $this.Script.InvokeReturnAsIs($p1, $p2) }
+            3 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3) }
+            4 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4) }
+            5 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5) }
+            6 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6) }
+            7 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7) }
+            8 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8) }
+            9 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
             10 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10) }
             default {
                 throw (new-object PSMockException("PSClassMock does not support more than 10 arguments for a method mock at this time."))
@@ -152,7 +152,7 @@ $mockMethodInfoClass = New-PSClass 'MockMethodInfo' {
 
 if (-not ([System.Management.Automation.PSTypeName]'PSMockException').Type)
 {
-    Add-Type -TypeDefinition @"
+    Add-Type -WarningAction Ignore -TypeDefinition @"
     using System;
 
     public class PSMockException : Exception {

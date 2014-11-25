@@ -42,6 +42,39 @@ Describe "New-PSClass" {
             $newDerived = $derivedClass.New()
             $newDerived.foo | Should Be "base"
         }
+
+        It "can use complex objects in base constructor" {
+            $testClass = New-PSClass "test" {
+                note "_foo" "default"
+                note "_bar" "default"
+                constructor {
+                    param (
+                        [psobject]$a,
+                        [psobject]$b
+                    )
+                    $this._foo = $a
+                    $this._bar = $b
+                }
+            }
+
+            $derivedClass = New-PSClass "derived" -inherit $testClass {}
+
+            $myAObject = New-PSObject @{
+                someProp = (New-PSObject @{
+                    anotherProp = "foo"
+                })
+            }
+
+            $myBObject = New-PSObject @{
+                prop1 = (New-PSObject @{
+                    prop2 = "bar"
+                })
+            }
+
+            $instance = $derivedClass.New($myAObject, $myBObject)
+            $instance._foo.someProp.anotherProp | Should Be $myAObject.someProp.anotherProp
+            $instance._bar.prop1.prop2 | Should Be $myBObject.prop1.prop2
+        }
     }
 
     Context "Constructor - Sunny" {
@@ -134,6 +167,37 @@ Describe "New-PSClass" {
             $instance = $testClass.New($expectedFoo, $expectedBar)
             $instance._foo | Should Be $expectedFoo
             $instance._bar | Should Be $expectedBar
+        }
+
+        It "can use complex objects in constructor" {
+            $testClass = New-PSClass "test" {
+                note "_foo" "default"
+                note "_bar" "default"
+                constructor {
+                    param (
+                        [psobject]$a,
+                        [psobject]$b
+                    )
+                    $this._foo = $a
+                    $this._bar = $b
+                }
+            }
+
+            $myAObject = New-PSObject @{
+                someProp = (New-PSObject @{
+                    anotherProp = "foo"
+                })
+            }
+
+            $myBObject = New-PSObject @{
+                prop1 = (New-PSObject @{
+                    prop2 = "bar"
+                })
+            }
+
+            $instance = $testClass.New($myAObject, $myBObject)
+            $instance._foo.someProp.anotherProp | Should Be $myAObject.someProp.anotherProp
+            $instance._bar.prop1.prop2 | Should Be $myBObject.prop1.prop2
         }
     }
 

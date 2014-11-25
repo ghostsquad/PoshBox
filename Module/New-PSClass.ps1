@@ -41,11 +41,11 @@ function New-PSClass {
             Attach-PSNote $class $name $value
         } else {
             if($class.__Notes[$name] -ne $null) {
-                throw (new-object System.InvalidOperationException("Note with name: $Name cannot be added twice."))
+                throw (new-object System.PSClassException("Note with name: $Name cannot be added twice."))
             }
 
             if($class.__BaseClass -and $class.__BaseClass.__Notes[$name] -ne $null) {
-                throw (new-object System.InvalidOperationException("Note with name: $Name cannot be added, as it already exists on the base class."))
+                throw (new-object System.PSClassException("Note with name: $Name cannot be added, as it already exists on the base class."))
             }
 
             $class.__Notes[$name] = @{Name=$name;DefaultValue=$value;}
@@ -70,15 +70,15 @@ function New-PSClass {
             Attach-PSProperty $class $name $get $set
         } else {
             if($class.__Properties[$name] -ne $null) {
-                throw (new-object System.InvalidOperationException("Property with name: $Name cannot be added twice."))
+                throw (new-object System.PSClassException("Property with name: $Name cannot be added twice."))
             }
 
             if($override) {
                 $baseProperty = ?: {$class.__BaseClass} { $class.__BaseClass.__Properties[$name] } { $null }
                 if($baseProperty -eq $null) {
-                    throw (new-object System.InvalidOperationException("Property with name: $Name cannot be override, as it does not exist on the base class."))
+                    throw (new-object System.PSClassException("Property with name: $Name cannot be override, as it does not exist on the base class."))
                 } elseif($baseProperty.SetScript -eq $null -xor $set -eq $null){
-                    throw (new-object System.InvalidOperationException("Property with name: $Name has setter which does not match the base class setter."))
+                    throw (new-object System.PSClassException("Property with name: $Name has setter which does not match the base class setter."))
                 }
             }
 
@@ -103,13 +103,13 @@ function New-PSClass {
             Attach-PSScriptMethod $class $name $script
         } else {
             if($class.__Methods[$name] -ne $null) {
-                throw (new-object System.InvalidOperationException("Method with name: $Name cannot be added twice."))
+                throw (new-object System.PSClassException("Method with name: $Name cannot be added twice."))
             }
 
             if($override) {
                 $baseMethod = ?: {$class.__BaseClass} { $class.__BaseClass.__Methods[$name] } { $null }
                 if($baseMethod -eq $null) {
-                    throw (new-object System.InvalidOperationException("Method with name: $Name cannot be override, as it does not exist on the base class."))
+                    throw (new-object System.PSClassException("Method with name: $Name cannot be override, as it does not exist on the base class."))
                 } else {
                     Assert-ScriptBlockParametersEqual $script $baseMethod.Script
                 }
@@ -135,7 +135,24 @@ function New-PSClass {
         $private:constructorParameters = $args
 
         if($this.__BaseClass -ne $null) {
-            $private:instance = $this.__BaseClass.New($args)
+            $private:p1, $private:p2, $private:p3, $private:p4, $private:p5, $private:p6, `
+                $private:p7, $private:p8, $private:p9, $private:p10 = $args
+            switch($args.Count) {
+                0 {  $private:instance = $this.__BaseClass.New() }
+                1 {  $private:instance = $this.__BaseClass.New($p1) }
+                2 {  $private:instance = $this.__BaseClass.New($p1, $p2) }
+                3 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3) }
+                4 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4) }
+                5 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4, $p5) }
+                6 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4, $p5, $p6) }
+                7 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7) }
+                8 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8) }
+                9 {  $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
+                10 { $private:instance = $this.__BaseClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10) }
+                default {
+                    throw (new-object PSClassException("PSClass does not support more than 10 arguments for a constructor."))
+                }
+            }
         }
         else {
             $private:instance = New-PSObject
@@ -213,5 +230,41 @@ function PSClass_RunConstructor {
         [Object]$ConstructorParameters
     )
 
-    [Void]($Constructor.InvokeReturnAsIs($ConstructorParameters))
+    $private:p1, $private:p2, $private:p3, $private:p4, $private:p5, $private:p6, `
+        $private:p7, $private:p8, $private:p9, $private:p10 = $ConstructorParameters
+    switch($ConstructorParameters.Count) {
+        0 {  [Void]($Constructor.InvokeReturnAsIs()) }
+        1 {  [Void]($Constructor.InvokeReturnAsIs($p1)) }
+        2 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2)) }
+        3 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3)) }
+        4 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4)) }
+        5 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5)) }
+        6 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6)) }
+        7 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7)) }
+        8 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8)) }
+        9 {  [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9)) }
+        10 { [Void]($Constructor.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10)) }
+        default {
+            throw (new-object PSClassException("PSClass does not support more than 10 arguments for a constructor."))
+        }
+    }
+}
+
+if (-not ([System.Management.Automation.PSTypeName]'PSClassException').Type)
+{
+    Add-Type -WarningAction Ignore -TypeDefinition @"
+    using System;
+
+    public class PSClassException : Exception {
+        public PSClassException(string message)
+            : base(message)
+        {
+        }
+
+        public PSClassException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
+"@
 }
