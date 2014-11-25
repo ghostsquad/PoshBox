@@ -25,11 +25,10 @@ Describe "New-PSClassMock" {
         }
 
         It "Throws if mocked method parameters don't match" {
-            { $mock = New-PSClassMock $testClass {
-                method "foo" {
+            $mock = New-PSClassMock $testClass
+            { $mock.SetupMethod("foo", {
                     param($a)
-                }
-              } } | Should Throw
+                }) } | Should Throw
         }
     }
 
@@ -47,11 +46,10 @@ Describe "New-PSClassMock" {
         }
 
         It "Calls mocked method" {
-            $mock = New-PSClassMock $testClass {
-                method "foo" {
+            $mock = New-PSClassMock $testClass
+            $mock.SetupMethod("foo", {
                     return "bar"
-                }
-            }
+                })
 
             $mockedObject = $mock.Object
 
@@ -67,11 +65,10 @@ Describe "New-PSClassMock" {
                 }
             }
 
-            $mock = New-PSClassMock $testClass {
-                method "foo" {
+            $mock = New-PSClassMock $testClass
+            $mock.SetupMethod("foo", {
                     param($a)
-                }
-            }
+                })
 
             [Void]$mock.Object.foo(1)
 
@@ -85,11 +82,10 @@ Describe "New-PSClassMock" {
                 }
             }
 
-            $mock = New-PSClassMock $testClass {
-                method "foo" {
+            $mock = New-PSClassMock $testClass
+            $mock.SetupMethod("foo", {
                     param($a)
-                }
-            }
+                })
 
             [void]$mock.Object.foo(1)
 
@@ -115,11 +111,10 @@ Describe "New-PSClassMock" {
                 }
             }
 
-            $mock = New-PSClassMock $testClass {
-                method "foo" {
+            $mock = New-PSClassMock $testClass
+            $mock.SetupMethod("foo", {
                     param($a, $b)
-                }
-            }
+                })
 
             [Void]$mock.Object.foo(1,1)
 
@@ -133,11 +128,10 @@ Describe "New-PSClassMock" {
                 }
             }
 
-            $mock = New-PSClassMock $testClass {
-                method "foo" {
+            $mock = New-PSClassMock $testClass
+            $mock.SetupMethod("foo", {
                     param($a, $b)
-                }
-            }
+                })
 
             [Void]$mock.Object.foo(1,1)
 

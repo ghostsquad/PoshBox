@@ -1,32 +1,47 @@
 function New-PSClassMock {
     param (
         [PSObject]$Class = $( Throw "parameter -Class is required." )
-      , [Scriptblock]$Setup = {}
-      , [Object]$SetupInput
       , [Switch]$Strict
     )
 
-    function method {
-        param (
-            [string]$name = $(Throw "Method Name is required.")
-          , [scriptblock]$script = {}
-        )
-        $mock._mockedMethods[$name] = $mockMethodInfoClass.New($mock, $name, $script)
-    }
-
     $mock = New-PSObject
     Attach-PSNote $mock '_strict' ([bool]$Strict)
-    Attach-PSNote $mock '_mockedClass' $Class.PSObject.Copy()
+    Attach-PSNote $mock '_originalClass' $Class
     Attach-PSNote $mock '_mockedMethods' @{}
-    Attach-PSNote $mock '_object'
-    Attach-PSProperty $mock 'Object' {
-        if($this._object -eq $null) {
-             $this._mockedClass.__ConstructorScript = {}
-             $this._object = $this._mockedClass.New()
-             Attach-PSNote $this._object '____mock' $this
+    Attach-PSNote $mock 'Object' (New-PSObject)
+    Attach-PSNote $mock.Object '____mock' $mock
+
+    Attach-PSScriptMethod $mock 'SetupMethod' {
+        param (
+            [string]$methodName
+          , [scriptblock]$script
+        )
+
+        if(-not $this._originalClass.__Methods.ContainsKey($methodName)) {
+            throw (new-object PSMockException("Method with name: $methodName cannot be found to mock!"))
         }
 
-        return $this._object
+        $methodToMockScript = $this._originalClass.__Methods[$methodName].Script
+
+        try {
+            Assert-ScriptBlockParametersEqual $methodToMockScript $script
+        } catch {
+            $msg = "Unable to mock method: {0}" -f $methodName
+            $exception = (new-object PSMockException($msg, $_))
+            throw $exception
+        }
+
+        # add the actual mocked script to the mock internals
+        $this._mockedMethods[$methodName] = $mockMethodInfoClass.New($this, $methodName, $script)
+
+        # replace the method script in the class we are to mock with a call to the mocked script
+        # because we are doing a bit of redirection, it allows us to capture information about each method call
+        $scriptBlockText = [string]::Format('$this.____mock._mockedMethods[''{0}''].Invoke($Args)', $methodName)
+        $mockedMethodScript = [ScriptBlock]::Create($scriptBlockText)
+
+        $member = new-object management.automation.PSScriptMethod $methodName,$mockedMethodScript
+        $this.Object.psobject.methods.remove($methodName)
+        [Void]$this.Object.psobject.methods.add($member)
     }
 
     Attach-PSScriptMethod $mock 'Verify' {
@@ -73,48 +88,16 @@ function New-PSClassMock {
         }
     }
 
-    [Void]([ScriptBlock]::Create($Setup.ToString()).InvokeReturnAsIs($SetupInput))
-
     foreach($methodName in $Class.__Methods.Keys) {
-        $methodToMockScript = $Class.__Methods[$methodName].Script
-
-        $mockedMethod = $mock._mockedMethods[$methodName]
-        $mockedMethodScript = $null
-        if($mockedMethod -ne $null) {
-            $mockedMethodScript = $mock._mockedMethods[$methodName].Script
-        }
-
-        if($mockedMethodScript -eq $null) {
-            if(-not $Strict) {
-                $mockedMethodScript = {}
-            } else {
-                $mockedMethodScript = {
-                    throw (new-object PSMockException("This Mock is strict and no expectation was set for this method"))
-                }
+        if(-not $Strict) {
+            $mockedMethodScript = {}
+        } else {
+            $mockedMethodScript = {
+                throw (new-object PSMockException("This Mock is strict and no expectation was set for this method"))
             }
         }
-        else {
-            try {
-                Assert-ScriptBlockParametersEqual $methodToMockScript $mockedMethodScript
-            } catch {
-                $msg = "Unable to mock method: {0}" -f $methodName
-                $exception = (new-object PSMockException($msg, $_))
-                throw $exception
-            }
 
-            $scriptBlockText = [string]::Format('$this.____mock._mockedMethods[''{0}''].Invoke($Args)', $methodName)
-            $mockedMethodScript = [ScriptBlock]::Create($scriptBlockText)
-        }
-
-        $Class.__Methods[$methodName].Script = $mockedMethodScript
-    }
-
-
-    foreach($mockedMethodName in $mock._mockedMethods.Keys) {
-        $methodToMock = $Class.__Methods[$mockedMethodName]
-        if($methodToMock -eq $null) {
-            throw (new-object PSMockException("Method with name: $mockedMethodName cannot be found to mock!"))
-        }
+        Attach-PSScriptMethod $mock.Object $methodName $mockedMethodScript
     }
 
     return $mock
