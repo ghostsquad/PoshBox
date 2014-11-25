@@ -196,6 +196,7 @@ function PSClass_AttachMembersToInstanceObject {
 
     # Attach Notes
     foreach($noteName in $Class.__Notes.Keys) {
+
         Attach-PSNote $Instance $noteName $Class.__Notes[$noteName].DefaultValue
     }
 
@@ -208,7 +209,15 @@ function PSClass_AttachMembersToInstanceObject {
             Set = $Class.__Properties[$propertyName].SetScript
             Override = $Class.__Properties[$propertyName].Override
         }
-        Attach-PSProperty @attachPropertyParams
+
+        try {
+            Attach-PSProperty @attachPropertyParams
+        } catch {
+            $msg = "Unable to attach property: {0}; see AttachParams property for details" -f $propertyName
+            $exception = (new-object PSClassException($msg, $_))
+            Atttach-PSNote $exception "AttachParams" $attachPropertyParams
+            throw $exception
+        }
     }
 
     # Attach Methods
@@ -219,7 +228,14 @@ function PSClass_AttachMembersToInstanceObject {
             ScriptBlock = $Class.__Methods[$methodName].Script
             Override = $Class.__Methods[$methodName].Override
         }
-        Attach-PSScriptMethod @attachScriptMethodParams
+        try {
+            Attach-PSScriptMethod @attachScriptMethodParams
+        } catch {
+            $msg = "Unable to attach method: {0}; see AttachParams property for details" -f $methodName
+            $exception = (new-object PSClassException($msg, $_))
+            Atttach-PSNote $exception "AttachParams" $attachScriptMethodParams
+            throw $exception
+        }
     }
 }
 
@@ -254,11 +270,20 @@ if (-not ([System.Management.Automation.PSTypeName]'PSClassException').Type)
 {
     Add-Type -WarningAction Ignore -TypeDefinition @"
     using System;
+    using System.Management.Automation;
 
     public class PSClassException : Exception {
+        public ErrorRecord ErrorRecord { get; private set; }
+
         public PSClassException(string message)
             : base(message)
         {
+        }
+
+        public PSClassException(string message, ErrorRecord errorRecord)
+            : base(message)
+        {
+            this.ErrorRecord = errorRecord;
         }
 
         public PSClassException(string message, Exception inner)

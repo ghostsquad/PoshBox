@@ -94,7 +94,14 @@ function New-PSClassMock {
             }
         }
         else {
-            Assert-ScriptBlockParametersEqual $methodToMockScript $mockedMethodScript
+            try {
+                Assert-ScriptBlockParametersEqual $methodToMockScript $mockedMethodScript
+            } catch {
+                $msg = "Unable to mock method: {0}" -f $methodName
+                $exception = (new-object PSMockException($msg, $_))
+                throw $exception
+            }
+
             $scriptBlockText = [string]::Format('$this.____mock._mockedMethods[''{0}''].Invoke($Args)', $methodName)
             $mockedMethodScript = [ScriptBlock]::Create($scriptBlockText)
         }
@@ -144,7 +151,7 @@ $mockMethodInfoClass = New-PSClass 'MockMethodInfo' {
             9 {  return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
             10 { return $this.Script.InvokeReturnAsIs($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10) }
             default {
-                throw (new-object PSMockException("PSClassMock does not support more than 10 arguments for a method mock at this time."))
+                throw (new-object PSMockException("PSClassMock does not support more than 10 arguments for a method mock."))
             }
         }
     }
@@ -154,11 +161,20 @@ if (-not ([System.Management.Automation.PSTypeName]'PSMockException').Type)
 {
     Add-Type -WarningAction Ignore -TypeDefinition @"
     using System;
+    using System.Management.Automation;
 
     public class PSMockException : Exception {
+        public ErrorRecord ErrorRecord { get; private set; }
+
         public PSMockException(string message)
             : base(message)
         {
+        }
+
+        public PSMockException(string message, ErrorRecord errorRecord)
+            : base(message)
+        {
+            this.ErrorRecord = errorRecord;
         }
 
         public PSMockException(string message, Exception inner)
