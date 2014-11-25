@@ -55,6 +55,17 @@ Describe "New-PSClassMock" {
 
             $mock.Object.foo() | Should Be "bar"
         }
+
+        It "NewClosure works" {
+            $mock = New-PSClassMock $testClass
+            $expectedReturn = "i am expected"
+
+            $mock.SetupMethod("foo", {
+                return $expectedReturn
+            }.GetNewClosure())
+
+            $mock.Object.foo() | Should Be $expectedReturn
+        }
     }
 
     Context "Usage - Verify Method Parameters" {

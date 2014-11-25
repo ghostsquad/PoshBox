@@ -1,7 +1,8 @@
 function Assert-ScriptBlockParametersEqual {
     param (
         [ScriptBlock]$x,
-        [ScriptBlock]$y
+        [ScriptBlock]$y,
+        [Switch]$AssertNamesMatch
     )
 
     if($x -eq $null -or $y -eq $null) {
@@ -19,8 +20,10 @@ function Assert-ScriptBlockParametersEqual {
             throw ("param type mismatch. x: {0} y: {1}." -f $yParams[$i].StaticType, $xParams[$i].StaticType)
         }
 
-        if($xParams[$i].Name.ToString() -ne $yParams[$i].Name.ToString()) {
-            throw ("param name mismatch. x: {0} y: {1}." -f $yParams[$i].Name, $xParams[$i].Name)
+        if($AssertNamesMatch) {
+            if($xParams[$i].Name.ToString() -ne $yParams[$i].Name.ToString()) {
+                throw ("param name mismatch. x: {0} y: {1}." -f $yParams[$i].Name, $xParams[$i].Name)
+            }
         }
     }
 }
