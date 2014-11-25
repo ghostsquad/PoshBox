@@ -3,7 +3,6 @@ function New-PSClassMock {
         [PSObject]$Class = $( Throw "parameter -Class is required." )
       , [Scriptblock]$Setup = {}
       , [Object]$SetupInput
-      , [Object[]]$ConstructorArgs = (New-Object Object[] 0)
       , [Switch]$Strict
     )
 
@@ -19,35 +18,13 @@ function New-PSClassMock {
     Attach-PSNote $mock '_strict' ([bool]$Strict)
     Attach-PSNote $mock '_mockedClass' $Class.PSObject.Copy()
     Attach-PSNote $mock '_mockedMethods' @{}
-    Attach-PSNote $mock '_constructorArgs' $ConstructorArgs
-    Attach-PSNote $mock '_initialized' ([bool]$false)
     Attach-PSNote $mock '_object'
     Attach-PSProperty $mock 'Object' {
-        if($this._initialized) {
-            return $this._object
+        if($this._object -eq $null) {
+             $this._mockedClass.__ConstructorScript = {}
+             $this._object = $this._mockedClass.New()
+             Attach-PSNote $this._object '____mock' $this
         }
-
-        $this._initialized = $true
-
-        $p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10 = $this._constructorArgs
-        switch($this._constructorArgs.Count) {
-            0 { $this._object = $this._mockedClass.New() }
-            1 { $this._object = $this._mockedClass.New($p1) }
-            2 { $this._object = $this._mockedClass.New($p1, $p2) }
-            3 { $this._object = $this._mockedClass.New($p1, $p2, $p3) }
-            4 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4) }
-            5 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5) }
-            6 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6) }
-            7 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7) }
-            8 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8) }
-            9 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9) }
-            10 { $this._object = $this._mockedClass.New($p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8, $p9, $p10) }
-            default {
-                throw (new-object PSMockException("PSClassMock does not support more than 10 constructor arguments at this time."))
-            }
-        }
-
-        Attach-PSNote $this._object '____mock' $this
 
         return $this._object
     }

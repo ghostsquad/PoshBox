@@ -60,7 +60,7 @@ Describe "New-PSClassMock" {
     }
 
     Context "Usage - Verify Method Parameters" {
-        It "Given VerifyParams, throws when parameter is not equivalent" {
+        It "mock.Verify throws when parameter is not equivalent" {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
                     param($a)
@@ -78,7 +78,7 @@ Describe "New-PSClassMock" {
             { $mock.Verify("foo", 2) } | Should Throw
         }
 
-        It "Given VerifyParams, does not throw when parameter is equivalent" {
+        It "mock.Verify does not throw when parameter is equivalent" {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
                     param($a)
@@ -104,7 +104,7 @@ Describe "New-PSClassMock" {
             @{a = {param($n) $n -eq 2}; b = 1}
             @{a = {param($n) $n -eq 1}; b = {param($n) $n -eq 2};}
         )
-        It "Given VerifyParams and multiple params, throws if any param is not equivalent to expectations" `
+        It "mock.Verify and multiple params, throws if any param is not equivalent to expectations: <a> <b>" `
             -TestCases $verifyParamsInputDiff {
 
             param( $a, $b )
@@ -126,7 +126,7 @@ Describe "New-PSClassMock" {
             { $mock.Verify('foo', @($a, $b)) } | Should Throw
         }
 
-        It "Given VerifyParams and multiple params, does not throw only if all params are equivalent to expectations" {
+        It "mock.Verify and multiple params, does not throw only if all params are equivalent to expectations" {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
                     param($a, $b)
