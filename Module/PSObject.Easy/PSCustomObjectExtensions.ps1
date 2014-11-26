@@ -59,7 +59,7 @@ Update-TypeData -TypeName System.Object `
             }
 
             2 {
-                Attach-PSNote $this $args[0] $args[1]
+                Attach-PSNote $this $args[0] $args[1] -Passthru
             }
 
             3 {
@@ -77,7 +77,7 @@ Update-TypeData -TypeName System.Object `
     -MemberName PSOverrideScriptMethod `
     -Value {
         if($args.count -eq 2) {
-            Attach-PSScriptMethod $this $args[0] $args[1] -override
+            Attach-PSScriptMethod $this $args[0] $args[1] -override -Passthru
         } else {
             throw (new-object System.InvalidOperationException("No overload for PSOverrideScriptMethod takes the specified number of parameters."))
         }
