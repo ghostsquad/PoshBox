@@ -41,11 +41,11 @@ function New-PSClass {
             Attach-PSNote $class $name $value
         } else {
             if($class.__Notes[$name] -ne $null) {
-                throw (new-object System.PSClassException("Note with name: $Name cannot be added twice."))
+                throw (new-object PSClassException("Note with name: $Name cannot be added twice."))
             }
 
             if($class.__BaseClass -and $class.__BaseClass.__Notes[$name] -ne $null) {
-                throw (new-object System.PSClassException("Note with name: $Name cannot be added, as it already exists on the base class."))
+                throw (new-object PSClassException("Note with name: $Name cannot be added, as it already exists on the base class."))
             }
 
             $class.__Notes[$name] = @{Name=$name;DefaultValue=$value;}
@@ -70,15 +70,15 @@ function New-PSClass {
             Attach-PSProperty $class $name $get $set
         } else {
             if($class.__Properties[$name] -ne $null) {
-                throw (new-object System.PSClassException("Property with name: $Name cannot be added twice."))
+                throw (new-object PSClassException("Property with name: $Name cannot be added twice."))
             }
 
             if($override) {
                 $baseProperty = ?: {$class.__BaseClass} { $class.__BaseClass.__Properties[$name] } { $null }
                 if($baseProperty -eq $null) {
-                    throw (new-object System.PSClassException("Property with name: $Name cannot be override, as it does not exist on the base class."))
+                    throw (new-object PSClassException("Property with name: $Name cannot be override, as it does not exist on the base class."))
                 } elseif($baseProperty.SetScript -eq $null -xor $set -eq $null){
-                    throw (new-object System.PSClassException("Property with name: $Name has setter which does not match the base class setter."))
+                    throw (new-object PSClassException("Property with name: $Name has setter which does not match the base class setter."))
                 }
             }
 
@@ -103,13 +103,13 @@ function New-PSClass {
             Attach-PSScriptMethod $class $name $script
         } else {
             if($class.__Methods[$name] -ne $null) {
-                throw (new-object System.PSClassException("Method with name: $Name cannot be added twice."))
+                throw (new-object PSClassException("Method with name: $Name cannot be added twice."))
             }
 
             if($override) {
                 $baseMethod = ?: {$class.__BaseClass} { $class.__BaseClass.__Methods[$name] } { $null }
                 if($baseMethod -eq $null) {
-                    throw (new-object System.PSClassException("Method with name: $Name cannot be override, as it does not exist on the base class."))
+                    throw (new-object PSClassException("Method with name: $Name cannot be override, as it does not exist on the base class."))
                 } else {
                     Assert-ScriptBlockParametersEqual $script $baseMethod.Script
                 }
