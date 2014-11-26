@@ -32,7 +32,7 @@ Update-TypeData -TypeName System.Object `
         }
 
         $name,$getter,$setter = $args
-        PS-AttachProperty $this $name $getter $setter -Passthru
+        Attach-PSProperty $this $name $getter $setter -Passthru
     } `
     -Force
 
@@ -42,7 +42,7 @@ Update-TypeData -TypeName System.Object `
     -Value {
         if($args.count -eq 2) {
             $name,$scriptblock = $args
-            PS-AttachScriptMethod $this $name $scriptblock -Passthru
+            Attach-PSScriptMethod $this $name $scriptblock -Passthru
         } else {
             throw (new-object System.InvalidOperationException("No overload for PSAddScriptMethod takes the specified number of parameters."))
         }
