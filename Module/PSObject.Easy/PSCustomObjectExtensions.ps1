@@ -27,7 +27,7 @@ Update-TypeData -TypeName System.Object `
     -MemberType ScriptMethod `
     -MemberName PSAddScriptProperty `
     -Value {
-        if($args.count -lt 1 -or $args.Count -gt 2) {
+        if($args.count -lt 2 -or $args.Count -gt 3) {
             throw (new-object System.InvalidOperationException("No overload for PSAddScriptProperty takes the specified number of parameters."))
         }
 

@@ -4,11 +4,11 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 function _AddNoteProperties1Arg {
     param (
-        [object]$object = (new-object PSObject)
+        [object]$object = (New-PSObject)
     )
 
-    $hash = @{p1=4; p2="Q4"; p3=(new-object psobject)}
-    $object = new-object PSObject
+    $hash = @{p1=4; p2="Q4"; p3=(New-PSObject)}
+    $object = New-PSObject
     $object.PSAddMember($hash)
     $object.p1 | Should Be $hash['p1']
     $object.p2 | Should Be $hash['p2']
@@ -17,7 +17,7 @@ function _AddNoteProperties1Arg {
 
 function _AddNoteProperty2Args {
     param (
-        [object]$object = (new-object PSObject)
+        [object]$object = (New-PSObject)
     )
     $object.PSAddMember($expectedPropertyName, $expectedPropertyValue)
     $object.$expectedPropertyName | Should Be $expectedPropertyValue
@@ -25,20 +25,20 @@ function _AddNoteProperty2Args {
 
 function _AddNoteProperty3Args {
     param (
-        [object]$object = (new-object PSObject)
+        [object]$object = (New-PSObject)
     )
-    $object = new-object PSObject
+    $object = New-PSObject
     $object.PSAddMember($expectedPropertyName, $expectedPropertyValue, "NoteProperty")
     $object.$expectedPropertyName | Should Be $expectedPropertyValue
 }
 
 function _AddScriptMethod3Args {
     param (
-        [object]$object = (new-object PSObject)
+        [object]$object = (New-PSObject)
     )
 
     $definition = {$a=1;write-output $a}
-    $object = new-object PSObject
+    $object = New-PSObject
     $object.PSAddMember("DoWork",$definition,"ScriptMethod")
     $object.DoWork() | Should Be 1
 }
@@ -46,12 +46,12 @@ function _AddScriptMethod3Args {
 Describe 'PSAddMember' {
     Context 'Overloads' {
         It 'throws an error when using 0 arguments' {
-            $o = new-object PSObject
+            $o = New-PSObject
             { $o.PSAddMember() } | Should Throw
         }
 
         It 'throws an error when using 4 arguments' {
-            $o = new-object PSObject
+            $o = New-PSObject
             { $o.PSAddMember(1,2,3,4) } | Should Throw
         }
     }
@@ -61,7 +61,7 @@ Describe 'PSAddMember' {
             $expectedName = "foo"
             $expectedValue = "bar"
             $hashtable = @{$expectedName = $expectedValue}
-            $actualObject = new-object PSObject
+            $actualObject = New-PSObject
             [Void]$actualObject.PSAddMember($hashtable)
 
             $actualObject.$expectedName | Should Be $expectedValue
@@ -76,7 +76,7 @@ Describe 'PSAddMember' {
                 $firstExpectedName = $firstExpectedValue
                 $secondExpectedName = $secondExpectedValue
             }
-            $actualObject = new-object PSObject
+            $actualObject = New-PSObject
             [Void]$actualObject.PSAddMember($hashtable)
 
             $actualObject.$firstExpectedName | Should Be $firstExpectedValue
@@ -85,13 +85,13 @@ Describe 'PSAddMember' {
 
         It "Throws an exception if inputobject is not IDictionary" {
             $input = "foo"
-            $actualObject = new-object PSObject
+            $actualObject = New-PSObject
             { [Void]$actualObject.PSAddMember($input) } | Should Throw
         }
 
         It "Returns self" {
             $hashtable = @{"foo" = "bar"}
-            $actualObject = new-object PSObject
+            $actualObject = New-PSObject
             $return = $actualObject.PSAddMember($hashtable)
 
             $return | Should Be $actualObject
@@ -130,7 +130,7 @@ Describe 'PSAddMember' {
         It "Throws if member already exists" {
             $expectedName = "foo"
             $expectedValue = "bar"
-            $actualObject = new-object PSObject
+            $actualObject = New-PSObject
             [Void]$actualObject.PSAddMember($expectedName, $expectedValue)
             { $actualObject.PSAddMember($expectedName, $expectedValue) } | Should Throw
         }
@@ -209,26 +209,142 @@ Describe 'PSAddMember' {
     }
 }
 
-Describe "PSOverrideScriptMethod" {
-    It "Overrides a scriptmethod if it already exists and has the same parameters" {
-        $expectedName = "foo"
-        $actualDefinition = {param($a) return "original"}
+Describe "PSAddScriptMethod" {
+    Context 'Overloads' {
+        It 'throws an error when using 1 arguments' {
+            $o = New-PSObject
+            { $o.PSAddScriptMethod("foo") } | Should Throw
+        }
 
-        $actualObject = new-psobject
-        $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
-
-        [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a) return "new"})
-
-        $actualObject.$expectedName() | Should Be "new"
+        It 'throws an error when using 3 arguments' {
+            $o = New-PSObject
+            { $o.PSAddScriptMethod("foo", {}, {}) } | Should Throw
+        }
     }
 
-    It "Throws an expection if param definition is different" {
-        $expectedName = "foo"
-        $actualDefinition = {param($a)}
+    Context "2 args" {
+        It "adds scriptmethod to object" {
+            $expectedObject = New-PSObject
+            $expectedObject.PSAddScriptMethod("foo", { return 'bar' })
 
-        $actualObject = new-psobject
-        $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
+            $expectedObject.Foo() | Should Be "bar"
+        }
 
-        { [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a, $b)}) } | Should Throw
+        It "Returns self" {
+            $expectedObject = New-PSObject
+            $actualObject = $expectedObject.PSAddScriptMethod("foo", {})
+
+            { $actualObject.Equals($expectedObject) } | Should Be $true
+        }
+    }
+}
+
+Describe "PSOverrideScriptMethod" {
+    Context 'Overloads' {
+        It 'throws an error when using 1 arguments' {
+            $o = New-PSObject
+            { $o.PSOverrideScriptMethod("foo") } | Should Throw
+        }
+
+        It 'throws an error when using 3 arguments' {
+            $o = New-PSObject
+            { $o.PSOverrideScriptMethod(1,2,3) } | Should Throw
+        }
+    }
+
+    Context "2 args" {
+        It "Overrides a scriptmethod if it already exists and has the same parameters" {
+            $expectedName = "foo"
+            $actualDefinition = {param($a) return "original"}
+
+            $actualObject = new-psobject
+            $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
+
+            [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a) return "new"})
+
+            $actualObject.$expectedName() | Should Be "new"
+        }
+
+        It "Throws an expection if param definition is different" {
+            $expectedName = "foo"
+            $actualDefinition = {param($a)}
+
+            $actualObject = new-psobject
+            $actualObject | Add-Member -MemberType ScriptMethod -Name $expectedName -Value $actualDefinition
+
+            { [Void]$actualObject.PSOverrideScriptMethod("foo", {param($a, $b)}) } | Should Throw
+        }
+
+        It "Returns self" {
+            $expectedObject = New-PSObject
+            $expectedName = "foo"
+            Attach-PSScriptMethod $expectedObject "foo" {}
+
+            $actualObject = $expectedObject.PSOverrideScriptMethod($expectedName, {})
+
+            { $actualObject.Equals($expectedObject) } | Should Be $true
+        }
+    }
+}
+
+Describe "PSAddScriptProperty" {
+    Context 'Overloads' {
+        It 'throws an error when using 0 arguments' {
+            $o = New-PSObject
+            { $o.PSAddScriptProperty() } | Should Throw
+        }
+
+        It 'throws an error when using 3 arguments' {
+            $o = New-PSObject
+            { $o.PSAddScriptProperty(1,2,3) } | Should Throw
+        }
+    }
+
+    Context "1 args" {
+        It "Getter is added" {
+            $o = New-PSObject
+            $o.PSAddScriptProperty("foo", {return "bar"})
+            $o.foo | Should Be "bar"
+        }
+
+        It "Setter is not added" {
+            $o = New-PSObject
+            $o.PSAddScriptProperty("foo", {return "bar"})
+
+            { $o.foo = "hello world" } | Should Throw
+        }
+
+        It "Returns self" {
+            $expectedObject = New-PSObject
+            $actualObject = $expectedObject.PSAddScriptProperty("foo", {})
+
+            { $actualObject.Equals($expectedObject) } | Should Be $true
+        }
+    }
+
+    Context "2 args" {
+        It "Getter is added" {
+            $o = New-PSObject
+            $o.PSAddScriptProperty("foo", {return "bar"}, {})
+            $o.foo | Should Be "bar"
+        }
+
+        It "Setter is added" {
+            $o = New-PSObject
+            $o | Add-Member -membertype noteproperty '_internal' 'unexpected'
+            $o.PSAddScriptProperty("foo", {return "bar"}, {$this._internal = $args[0]})
+
+            $expectedValue = 'hello world'
+            $o.foo = $expectedValue
+
+            $o._internal | Should Be $expectedValue
+        }
+
+        It "Returns self" {
+            $expectedObject = New-PSObject
+            $actualObject = $expectedObject.PSAddScriptProperty("foo", {}, {})
+
+            { $actualObject.Equals($expectedObject) } | Should Be $true
+        }
     }
 }
