@@ -2,7 +2,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$here\TestCommon.ps1"
 
 Describe "New-PSClassMock" {
-    Context "Creation" {
+    Context "Method Mocking" {
         BeforeEach {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
@@ -10,7 +10,13 @@ Describe "New-PSClassMock" {
                 }
             }
         }
-        It "Given -Strict expects methods to have an expectation" {
+
+        It "Given Non-Strict, No Expectation, methods do nothing, return null" {
+            $mock = New-PSClassMock $testClass
+            { $mock.Object.foo() } | Should Not Throw
+        }
+
+        It "Given -Strict, No Expectation, should throw PsMockException" {
             $mock = New-PSClassMock $testClass -Strict
 
             $errorRecord = $null
@@ -24,28 +30,7 @@ Describe "New-PSClassMock" {
             $errorRecord.Exception.GetBaseException().GetType() | Should Be ([PSMockException])
         }
 
-        It "Throws if mocked method parameters don't match" {
-            $mock = New-PSClassMock $testClass
-            { $mock.SetupMethod("foo", {
-                    param($a)
-                }) } | Should Throw
-        }
-    }
-
-    Context "Usage - Mocking Methods" {
-        BeforeEach {
-            $testClass = New-PSClass "testClass" {
-                method "foo" {
-                    throw "not implemented"
-                }
-            }
-        }
-        It "Given Basic Mock, mocked class methods are not called" {
-            $mock = New-PSClassMock $testClass
-            { $mock.Object.foo() } | Should Not Throw
-        }
-
-        It "Calls mocked method" {
+        It "Given method with Expectation, provided Expectation is used" {
             $mock = New-PSClassMock $testClass
             $mock.SetupMethod("foo", {
                     return "bar"
@@ -56,7 +41,14 @@ Describe "New-PSClassMock" {
             $mock.Object.foo() | Should Be "bar"
         }
 
-        It "NewClosure works" {
+        It "Given non-matching method parameters, should throw PsMockException" {
+            $mock = New-PSClassMock $testClass
+            { $mock.SetupMethod("foo", {
+                    param($a)
+                }) } | Should Throw
+        }
+
+        It "Can use variables from test case using GetNewClosure" {
             $mock = New-PSClassMock $testClass
             $expectedReturn = "i am expected"
 
@@ -66,10 +58,8 @@ Describe "New-PSClassMock" {
 
             $mock.Object.foo() | Should Be $expectedReturn
         }
-    }
 
-    Context "Usage - Verify Method Parameters" {
-        It "mock.Verify throws when parameter is not equivalent" {
+        It "Mock.Verify, non-equivalent parameter, should throw PsMockException" {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
                     param($a)
@@ -86,7 +76,7 @@ Describe "New-PSClassMock" {
             { $mock.Verify("foo", 2) } | Should Throw
         }
 
-        It "mock.Verify does not throw when parameter is equivalent" {
+        It "Mock.Verify, equivalent parameter, does not throw" {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
                     param($a)
@@ -111,7 +101,7 @@ Describe "New-PSClassMock" {
             @{a = {param($n) $n -eq 2}; b = 1}
             @{a = {param($n) $n -eq 1}; b = {param($n) $n -eq 2};}
         )
-        It "mock.Verify and multiple params, throws if any param is not equivalent to expectations: <a> <b>" `
+        It "Mock.Verify, multiple non-equivalent params, should throw PsMockException: <a> <b>" `
             -TestCases $verifyParamsInputDiff {
 
             param( $a, $b )
@@ -132,7 +122,7 @@ Describe "New-PSClassMock" {
             { $mock.Verify('foo', @($a, $b)) } | Should Throw
         }
 
-        It "mock.Verify and multiple params, does not throw only if all params are equivalent to expectations" {
+        It "mock.Verify, multiple equivalent params, does not throw" {
             $testClass = New-PSClass "testClass" {
                 method "foo" {
                     param($a, $b)
@@ -147,6 +137,103 @@ Describe "New-PSClassMock" {
             [Void]$mock.Object.foo(1,1)
 
             { $mock.Verify('foo', @(1,1)) } | Should Not Throw
+        }
+
+        It "can get method invocation info" {
+            $testClass = New-PSClass "testClass" {
+                method "foo" {
+                    param($a, $b)
+                }
+            }
+
+            $mock = New-PSClassMock $testClass
+            $mock.SetupMethod("foo", {
+                    param($a, $b)
+                })
+
+            $expectedA = 'expectedA'
+            $expectedB = 'expectedB'
+            [Void]$mock.Object.foo($expectedA, $expectedB)
+
+            $mock._mockedMethods["foo"].Invocations.Count | Should Be 1
+            $mock._mockedMethods["foo"].Invocations[0].Count | Should Be 2
+            $mock._mockedMethods["foo"].Invocations[0][0] | Should Be $expectedA
+            $mock._mockedMethods["foo"].Invocations[0][1] | Should Be $expectedB
+        }
+    }
+
+    Context "Note Mocking" {
+        BeforeEach {
+            $testClass = New-PSClass "testClass" {
+                note "myNote" "im a test"
+            }
+        }
+
+        It "Includes notes from class" {
+            $mock = New-PSClassMock $testClass
+            $mock.Object.myNote | Should Be $null
+        }
+
+        It "Given Non-Strict, Expectation Set, note getter should return expected value" {
+            $expectedValue = "im expected"
+
+            $mock = New-PSClassMock $testClass -Strict
+            $mock.SetupNoteGet("myNote", {
+                return $expectedValue
+            }.GetNewClosure())
+
+            $mock.Object.myNote | Should Be $expectedValue
+        }
+
+        It "Given Non-Strict, Expectation Set, note setter value should be trackable" {
+            $mock = New-PSClassMock $testClass -Strict
+            $actualValue = $null
+
+            $mock.SetupNoteSet("myNote", [ref]$actualValue)
+
+            $expectedValue = "foo"
+
+            $mock.Object.myNote = $expectedValue
+
+            $actualValue | Should Be $expectedValue
+        }
+    }
+
+    Context "Property Mocking" {
+        BeforeEach {
+            $testClass = New-PSClass "testClass" {
+                property "myProp" { return "im a test" }
+            }
+        }
+
+        It "Includes properties from class" {
+            $mock = New-PSClassMock $testClass
+            $mock.Object.myProp | Should Be $null
+        }
+
+        It "Given Non-Strict, Expectation Set, property getter should return expected value" {
+            $mock = New-PSClassMock $testClass -Strict
+
+            $expectedValue = "im expected"
+
+            $mock.SetupPropertyGet("myProp", {
+                return $expectedValue
+            }.GetNewClosure())
+
+            $mock.Object.myProp | Should Be $expectedValue
+        }
+
+        It "Given Non-Strict, Expectation Set, property setter value should be trackable" {
+            $mock = New-PSClassMock $testClass -Strict
+            $actualValue = $null
+
+            $mock.SetupPropertySet("myProp", [ref]$actualValue)
+
+            $expectedValue = "expectedVal"
+
+            $mock.Object.myProp = $expectedValue
+
+            $actualValue | Should Be $expectedValue
         }
     }
 }
