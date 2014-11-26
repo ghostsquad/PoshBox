@@ -2,6 +2,10 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
 . "$here\TestCommon.ps1"
 
+function IAmOutside {
+    return "I Am Outside"
+}
+
 Describe "New-PSClass" {
     Context "GivenStaticMethod" {
         It "runs provided script block" {
@@ -198,6 +202,18 @@ Describe "New-PSClass" {
             $instance = $testClass.New($myAObject, $myBObject)
             $instance._foo.someProp.anotherProp | Should Be $myAObject.someProp.anotherProp
             $instance._bar.prop1.prop2 | Should Be $myBObject.prop1.prop2
+        }
+
+        It "can use outside functions" {
+            $testClass = New-PSClass "test" {
+                method "foo" {
+                    return (IAmOutside)
+                }
+            }
+
+            $instance = $testClass.New()
+
+            $instance.foo() | Should Be "I Am Outside"
         }
     }
 
