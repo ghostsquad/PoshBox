@@ -39,6 +39,7 @@ AddConsoleLogAppender
 
 # there's a bit of a dependency tree, so let's load some of the lower level functions first
 . $here\PSUsing.ps1
+. $here\New-Closure.ps1
 . $here\New-GenericObject.ps1
 . $here\New-PSObject.ps1
 . $here\Assert-ScriptBlockParametersEqual.ps1
