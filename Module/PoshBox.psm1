@@ -10,20 +10,14 @@ Import-Module PSCX -Global
 
 $global:PoshBoxModuleRoot = $PSScriptRoot
 
-$null = Add-Type -Path (Join-Path $PSScriptRoot "PoshBox.dll")
-$null = Add-Type -Path (Join-Path $PSScriptRoot "Logging/log4net.2.0.3/log4net.dll")
-$null = Add-Type -Path (Join-Path $PSScriptRoot "Sql/mysql.data.dll")
-$null = Add-Type -Path (Join-Path $PSScriptRoot "CredentialManagement/CredentialManagement.dll")
+[Void](Add-Type -Path (Join-Path $PSScriptRoot "PoshBox.dll"))
+[Void](Add-Type -Path (Join-Path $PSScriptRoot "Logging/log4net.2.0.3/log4net.dll"))
+[Void](Add-Type -Path (Join-Path $PSScriptRoot "Sql/mysql.data.dll"))
+[Void](Add-Type -Path (Join-Path $PSScriptRoot "CredentialManagement/CredentialManagement.dll"))
 
 #Import-Module $here\Indented\Indented.Common\Indented.Common.psd1 -Global
 #Import-Module $here\Indented\Indented.Dns\Indented.Dns.psd1 -Global
 #Import-Module $here\Indented\Indented.NetworkTools\Indented.NetworkTools.psd1 -Global
-
-$global:PoshBoxSettings = New-Object PSObject -Property @{
-    AWSAccessKey              = ""
-    AWSSecretKey              = ""
-    Version                   = "0.1 alpha"
-}
 
 [log4net.LogManager]::ResetConfiguration();
 

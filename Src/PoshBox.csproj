@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PowershellCaster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -52,16 +51,16 @@
   <Target Name="BeforeBuild">
   </Target>
   -->
-  <Import Project="$(MSBuildExtensionsPath)\ExtensionPack\MSBuild.ExtensionPack.tasks"/>
+  <Import Project="$(MSBuildExtensionsPath)\ExtensionPack\MSBuild.ExtensionPack.tasks" />
   <Target Name="AfterBuild">
     <ItemGroup>
-        <OutputFiles Include="$(TargetName).dll"/>
+      <OutputFiles Include="$(TargetName).dll" />
     </ItemGroup>
     <MSBuild.ExtensionPack.FileSystem.RoboCopy Source="$(TargetDir)\" Destination="$(SolutionDir)\..\Module\" Files="@(OutputFiles)">
-        <Output TaskParameter="ExitCode" PropertyName="Exit" />
-        <Output TaskParameter="ReturnCode" PropertyName="Return" />
+      <Output TaskParameter="ExitCode" PropertyName="Exit" />
+      <Output TaskParameter="ReturnCode" PropertyName="Return" />
     </MSBuild.ExtensionPack.FileSystem.RoboCopy>
-    <Message Text="ExitCode = $(Exit)"/>
-    <Message Text="ReturnCode = $(Return)"/>
+    <Message Text="ExitCode = $(Exit)" />
+    <Message Text="ReturnCode = $(Return)" />
   </Target>
 </Project>
