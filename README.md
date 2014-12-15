@@ -4,13 +4,6 @@
 
 PoshBox is my <b>Po</b>wer<b>sh</b>ell Tool<b>Box</b>, similar to Powershell Community Extensions. In fact, PoshBox pulls various modules and code I've found, developed or improved upon all into one place. This isn't a "catch all". I'm trying to keep this module restricted to cmdlets and such that would be commonly used in any powershell development.
 
-1. **Logging** - Cmdlets that leverage Log4net
-2. **Development helpers** - Source File Cleanup
-  * TODO: PoshCop - Like StyleCop
-3. **SQL/MYSQL** - Cmdlets to make querying SQL/MYSQL easier
-4. **Indented!** - Including the [Indented! Module](http://www.indented.co.uk/)
-5. **In-Console UI** - This is still under heavy development, but will include various ways to make a UI within the powershell console.
-
 ## Installation
 
 1. Install [Powershell Community Extensions 3.1 or later](https://pscx.codeplex.com/releases)
