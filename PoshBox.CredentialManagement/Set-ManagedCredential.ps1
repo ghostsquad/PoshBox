@@ -28,7 +28,7 @@ function Set-ManagedCredential {
         $Password,`
         $Target)
 
-    PSUsing $managedCredential {
+    Invoke-Using $managedCredential {
         if(-not $managedCredential.Save()) {
             throw "Unable to save credentials!"
         }

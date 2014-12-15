@@ -6,6 +6,6 @@ function Guard-ArgumentValid {
     )
 
     if(-not $Test) {
-        throw new ArgumentException($Message, $ArgumentName)
+        throw (New-Object System.ArgumentException($Message, $ArgumentName))
     }
 }

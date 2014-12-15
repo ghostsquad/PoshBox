@@ -5,6 +5,6 @@ function Guard-ArgumentNotNull {
     )
 
     if($ArgumentValue -eq $null) {
-        throw (New-Object System.ArgumentNullException($ArgumentName)
+        throw (New-Object System.ArgumentNullException($ArgumentName))
     }
 }

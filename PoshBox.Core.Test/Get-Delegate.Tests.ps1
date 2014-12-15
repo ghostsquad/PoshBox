@@ -1,6 +1,6 @@
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
-. "$here\TestCommon.ps1"
+. "$here\..\TestCommon.ps1"
 
 Describe 'Get-Delegate Static Methods' {
     Context '[string]::format | get-delegate -delegate ''func[string,object,string]''' {

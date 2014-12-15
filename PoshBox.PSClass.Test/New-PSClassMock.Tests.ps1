@@ -1,5 +1,5 @@
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
-. "$here\TestCommon.ps1"
+. "$here\..\TestCommon.ps1"
 
 Describe "New-PSClassMock" {
     Context "Method Mocking" {

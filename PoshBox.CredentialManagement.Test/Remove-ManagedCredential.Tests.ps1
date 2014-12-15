@@ -1,13 +1,13 @@
 ﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
-. "$here\TestCommon.ps1"
+. "$here\..\TestCommon.ps1"
 
 Describe "Remove-ManagedCredential" {
     It "Removes a credential from Windows Credential Manager if it exists" {
         $target = [Guid]::NewGuid().ToString()
         $actualCreds = new-object CredentialManagement.Credential("testuser", "pass123", $target)
 
-        PSUsing $actualCreds {
+        Invoke-Using $actualCreds {
             $credManSave = $actualCreds.Save()
 
             try {

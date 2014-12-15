@@ -1,6 +1,6 @@
 ﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
-. "$here\TestCommon.ps1"
+. "$here\..\TestCommon.ps1"
 
 Describe "Set-ManagedCredential" {
     It "Add credential to Windows Credential Manager if it does not exist" {
@@ -11,7 +11,7 @@ Describe "Set-ManagedCredential" {
         Set-ManagedCredential -Target $target -UserName $expectedUserName -Password $expectedPassword
 
         $actualCreds = new-object CredentialManagement.Credential($expectedUserName, $expectedPassword, $target)
-        PSUsing $actualCreds {
+        Invoke-Using $actualCreds {
             $credManLoad = $actualCreds.Load()
 
             try {
@@ -30,7 +30,7 @@ Describe "Set-ManagedCredential" {
         $target = [Guid]::NewGuid().ToString()
 
         $actualCreds = new-object CredentialManagement.Credential("foo", "bar", $target)
-        PSUsing $actualCreds {
+        Invoke-Using $actualCreds {
             $credManLoad = $actualCreds.Save()
 
             $expectedUserName = [Guid]::NewGuid().ToString()

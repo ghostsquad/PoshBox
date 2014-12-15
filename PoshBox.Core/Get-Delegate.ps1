@@ -60,7 +60,7 @@ For a method with no overloads, we will choose the default method and create a c
     Guard-ArgumentNotNull 'Method' $Method
 
     if($PSCmdlet.ParameterSetName -eq "FromDelegate") {
-        Guard-ArgumentValid 'DelegateType' [delegate].isassignablefrom($DelegateType)
+        Guard-ArgumentValid 'DelegateType' "$DelegateType must be assignable from delegate" ([delegate].isassignablefrom($DelegateType))
     } elseif($PSCmdlet.ParameterSetName -eq "FromParameterType") {
         Guard-ArgumentNotNull 'ParameterType' $ParameterType
     }

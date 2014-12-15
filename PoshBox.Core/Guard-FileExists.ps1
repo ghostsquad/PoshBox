@@ -5,5 +5,5 @@ function Guard-FileExists {
     )
 
     Guard-ArgumentNotNullOrEmpty $ArgumentName $FileName
-    Guard-ArgumentValid $ArgumentName ('File not found: {0}' -f $FileName) { [System.IO.File]::Exists($FileName) }
+    Guard-ArgumentValid $ArgumentName ('File not found: {0}' -f $FileName) ([System.IO.File]::Exists($FileName))
 }

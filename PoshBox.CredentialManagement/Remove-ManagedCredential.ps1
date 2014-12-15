@@ -6,7 +6,7 @@ function Remove-ManagedCredential {
     $managedCredential = new-object CredentialManagement.Credential
     $managedCredential.Target = $Target
 
-    PSUsing $managedCredential {
+    Invoke-Using $managedCredential {
         if(-not $managedCredential.Exists())
         {
             throw "Credential does not exist"

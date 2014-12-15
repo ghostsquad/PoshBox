@@ -14,7 +14,7 @@ function New-DynamicModuleBuilder {
     #   New-DynamicModuleBuilder "Example.Assembly"
 
     [CmdLetBinding()]
-    [OutputType([System.Reflection.Emit.ModuleBuilder])
+    [OutputType([System.Reflection.Emit.ModuleBuilder])]
     param(
         [Reflection.AssemblyName]$AssemblyName
     )

@@ -57,7 +57,7 @@ function New-Enum {
         [Type]$Type = "Int32",
 
         [Alias('Flags')]
-        [Switch]$SetFlagsAttribute,
+        [Switch]$SetFlagsAttribute
     )
 
     Guard-ArgumentNotNull 'ModuleBuilder' $ModuleBuilder
