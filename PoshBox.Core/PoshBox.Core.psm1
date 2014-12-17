@@ -149,6 +149,7 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 . $here\New-DynamicModuleBuilder.ps1
 . $here\New-Enum.ps1
 . $here\New-GenericObject.ps1
+. $here\New-Lazy.ps1
 . $here\New-PSCredential.ps1
 . $here\New-PSObject.ps1
 . $here\PSCustomObjectExtensions.ps1
