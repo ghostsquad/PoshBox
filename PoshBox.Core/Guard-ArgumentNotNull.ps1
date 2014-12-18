@@ -1,7 +1,7 @@
 function Guard-ArgumentNotNull {
     param(
         [string]$ArgumentName,
-        $ArgumentValue
+        [object]$ArgumentValue
     )
 
     if($ArgumentValue -eq $null) {

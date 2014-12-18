@@ -10,10 +10,10 @@ Describe "Attach-PSScriptMethod" {
 
     Context "Given Name, Script" {
         It "Attaches ScriptMethod with Getter" {
-            $expectedObject = New-PSObject
-            Attach-PSScriptMethod $expectedObject $expectedMethodName $expectedScript
+            $actualObject = New-PSObject
+            Attach-PSScriptMethod $actualObject $expectedMethodName $expectedScript
 
-            $actualScript = $expectedObject.psobject.methods[$expectedMethodName].Script
+            $actualScript = $actualObject.psobject.methods[$expectedMethodName].Script
 
             $actualScript.ToString() | Should Be $expectedScript.ToString()
         }
@@ -21,46 +21,63 @@ Describe "Attach-PSScriptMethod" {
 
     Context "Given PassThru" {
         It "returns inputobject" {
-            $expectedObject = New-PSObject
-            $actualObject = Attach-PSScriptMethod $expectedObject "foo" {} -PassThru
-            { $actualObject.Equals($expectedObject) } | Should Be $true
+            $actualObject = New-PSObject
+            $actualObject = Attach-PSScriptMethod $actualObject "foo" {} -PassThru
+            { $actualObject.Equals($actualObject) } | Should Be $true
         }
     }
 
     Context "Given Override" {
         It "throws if existing method does not exist" {
-            $expectedObject = New-PSObject
-            { Attach-PSScriptMethod $expectedObject $expectedMethodName {} -override } | Should Throw
+            $actualObject = New-PSObject
+            { Attach-PSScriptMethod $actualObject $expectedMethodName {} -override } | Should Throw
 
         }
 
         It "overrides an existing property with same script parameters" {
-            $expectedObject = New-PSObject
-            Attach-PSScriptMethod $expectedObject $expectedMethodName {}
-            Attach-PSScriptMethod $expectedObject $expectedMethodName $expectedScript -override
+            $actualObject = New-PSObject
+            Attach-PSScriptMethod $actualObject $expectedMethodName {}
+            Attach-PSScriptMethod $actualObject $expectedMethodName $expectedScript -override
 
-            $expectedObject.psobject.methods[$expectedMethodName].Script.ToString() | Should Be $expectedScript.ToString()
+            $actualObject.psobject.methods[$expectedMethodName].Script.ToString() | Should Be $expectedScript.ToString()
         }
 
         It "throws if original method has no parameters defined and override has parameters defined" {
-            $expectedObject = New-PSObject
-            Attach-PSScriptMethod $expectedObject $expectedMethodName {}
-            $action = { Attach-PSScriptMethod $expectedObject $expectedMethodName {param($a)} -override }
+            $actualObject = New-PSObject
+            Attach-PSScriptMethod $actualObject $expectedMethodName {}
+            $action = { Attach-PSScriptMethod $actualObject $expectedMethodName {param($a)} -override }
             $action | Should Throw
         }
 
         It "throws if original method has parameters defined and override has no parameters defined" {
-            $expectedObject = New-PSObject
-            Attach-PSScriptMethod $expectedObject $expectedMethodName {param($a)}
-            $action = { Attach-PSScriptMethod $expectedObject $expectedMethodName {} -override }
+            $actualObject = New-PSObject
+            Attach-PSScriptMethod $actualObject $expectedMethodName {param($a)}
+            $action = { Attach-PSScriptMethod $actualObject $expectedMethodName {} -override }
             $action | Should Throw
         }
 
         It "throws if method parameter count is mismatched" {
-            $expectedObject = New-PSObject
-            Attach-PSScriptMethod $expectedObject $expectedMethodName {param($a)}
-            $action = { Attach-PSScriptMethod $expectedObject $expectedMethodName {param($a, $b)} -override }
+            $actualObject = New-PSObject
+            Attach-PSScriptMethod $actualObject $expectedMethodName {param($a)}
+            $action = { Attach-PSScriptMethod $actualObject $expectedMethodName {param($a, $b)} -override }
             $action | Should Throw
+        }
+    }
+
+    Context 'Given PSScriptMethod' {
+        It 'Adds the provided PSScriptProperty object' {
+            $actualObject = New-PSObject
+            $expectedScriptMethod = new-object management.automation.PSScriptMethod $expectedMethodName,$expectedScript
+            Attach-PSScriptMethod $actualObject $expectedScriptMethod
+
+            $actualObject.psobject.methods[$expectedMethodName].Script.ToString() | Should Be $expectedScript.ToString()
+        }
+
+        It 'Throws an expection if script property already attached' {
+            $actualObject = New-PSObject
+            $expectedScriptMethod = new-object management.automation.PSScriptMethod $expectedMethodName,$expectedScript
+            Attach-PSScriptMethod $actualObject $expectedScriptMethod
+            { Attach-PSScriptMethod $actualObject $expectedScriptMethod } | Should Throw
         }
     }
 }

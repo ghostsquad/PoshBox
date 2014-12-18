@@ -4,7 +4,8 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Describe "New-PSClassMock" {
     Context "Method Mocking" {
         BeforeEach {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 method "foo" {
                     throw "not implemented"
                 }
@@ -60,7 +61,8 @@ Describe "New-PSClassMock" {
         }
 
         It "Mock.Verify, non-equivalent parameter, should throw PsMockException" {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 method "foo" {
                     param($a)
                 }
@@ -77,7 +79,8 @@ Describe "New-PSClassMock" {
         }
 
         It "Mock.Verify, equivalent parameter, does not throw" {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 method "foo" {
                     param($a)
                 }
@@ -106,7 +109,8 @@ Describe "New-PSClassMock" {
 
             param( $a, $b )
 
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 method "foo" {
                     param($a, $b)
                 }
@@ -123,7 +127,8 @@ Describe "New-PSClassMock" {
         }
 
         It "mock.Verify, multiple equivalent params, does not throw" {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 method "foo" {
                     param($a, $b)
                 }
@@ -140,7 +145,8 @@ Describe "New-PSClassMock" {
         }
 
         It "can get method invocation info" {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 method "foo" {
                     param($a, $b)
                 }
@@ -164,7 +170,8 @@ Describe "New-PSClassMock" {
 
     Context "Note Mocking" {
         BeforeEach {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 note "myNote" "im a test"
             }
         }
@@ -201,7 +208,8 @@ Describe "New-PSClassMock" {
 
     Context "Property Mocking" {
         BeforeEach {
-            $testClass = New-PSClass "testClass" {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {
                 property "myProp" { return "im a test" }
             }
         }

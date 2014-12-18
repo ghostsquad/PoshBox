@@ -11,10 +11,10 @@ Describe "Attach-PSProperty" {
 
     Context "Given Name, GetScript" {
         It "Attaches ScriptMethod with Getter" {
-            $expectedObject = New-PSObject
-            Attach-PSProperty $expectedObject $expectedPropertyName $expectedGetterScript
+            $actualObject = New-PSObject
+            Attach-PSProperty $actualObject $expectedPropertyName $expectedGetterScript
 
-            $actualGetter = $expectedObject.psobject.properties[$expectedPropertyName].GetterScript
+            $actualGetter = $actualObject.psobject.properties[$expectedPropertyName].GetterScript
 
             $actualGetter.ToString() | Should Be $expectedGetterScript.ToString()
         }
@@ -22,10 +22,10 @@ Describe "Attach-PSProperty" {
 
     Context "Given Name, Get, Set" {
         It "Attaches ScriptProperty with Setter" {
-            $expectedObject = New-PSObject
-            Attach-PSProperty $expectedObject $expectedPropertyName {} $expectedSetterScript
+            $actualObject = New-PSObject
+            Attach-PSProperty $actualObject $expectedPropertyName {} $expectedSetterScript
 
-            $actualSetter = $expectedObject.psobject.properties[$expectedPropertyName].SetterScript
+            $actualSetter = $actualObject.psobject.properties[$expectedPropertyName].SetterScript
 
             $actualSetter.ToString() | Should Be $expectedSetterScript.ToString()
         }
@@ -41,26 +41,44 @@ Describe "Attach-PSProperty" {
 
     Context "Given Override" {
         It "throws if existing property does not exist" {
-            $expectedObject = New-PSObject
-            $action = { Attach-PSProperty $expectedObject $expectedPropertyName {} {} -override }
+            $actualObject = New-PSObject
+            $action = { Attach-PSProperty $actualObject $expectedPropertyName {} {} -override }
             $action | Should Throw
 
         }
 
         It "overrides an existing property with same setter and getter" {
-            $expectedObject = New-PSObject
-            Attach-PSProperty $expectedObject $expectedPropertyName {} {}
-            Attach-PSProperty $expectedObject $expectedPropertyName $expectedGetterScript $expectedSetterScript -override
+            $actualObject = New-PSObject
+            Attach-PSProperty $actualObject $expectedPropertyName {} {}
+            Attach-PSProperty $actualObject $expectedPropertyName $expectedGetterScript $expectedSetterScript -override
 
-            $expectedObject.psobject.properties[$expectedPropertyName].GetterScript.ToString() | Should Be $expectedGetterScript.ToString()
-            $expectedObject.psobject.properties[$expectedPropertyName].SetterScript.ToString() | Should Be $expectedSetterScript.ToString()
+            $actualObject.psobject.properties[$expectedPropertyName].GetterScript.ToString() | Should Be $expectedGetterScript.ToString()
+            $actualObject.psobject.properties[$expectedPropertyName].SetterScript.ToString() | Should Be $expectedSetterScript.ToString()
         }
 
         It "throws if setter is missing from the original, and provided in override" {
-            $expectedObject = New-PSObject
-            Attach-PSProperty $expectedObject $expectedPropertyName {}
-            $action = { Attach-PSProperty $expectedObject $expectedPropertyName $expectedGetterScript $expectedSetterScript -override }
+            $actualObject = New-PSObject
+            Attach-PSProperty $actualObject $expectedPropertyName {}
+            $action = { Attach-PSProperty $actualObject $expectedPropertyName $expectedGetterScript $expectedSetterScript -override }
             $action | Should Throw
+        }
+    }
+
+    Context 'Given PSScriptProperty' {
+        It 'Adds the provided PSScriptProperty object' {
+            $actualObject = New-PSObject
+            $expectedScriptProperty = new-object management.automation.PSScriptProperty $expectedPropertyName, $expectedGetterScript, $expectedSetterScript
+            Attach-PSProperty $actualObject $expectedScriptProperty
+
+            $actualObject.psobject.properties[$expectedPropertyName].GetterScript.ToString() | Should Be $expectedGetterScript.ToString()
+            $actualObject.psobject.properties[$expectedPropertyName].SetterScript.ToString() | Should Be $expectedSetterScript.ToString()
+        }
+
+        It 'Throws an expection if script property already attached' {
+            $actualObject = New-PSObject
+            $expectedScriptProperty = new-object management.automation.PSScriptProperty $expectedPropertyName, $expectedGetterScript, $expectedSetterScript
+            Attach-PSProperty $actualObject $expectedScriptProperty
+            { Attach-PSProperty $actualObject $expectedScriptProperty } | Should Throw
         }
     }
 }

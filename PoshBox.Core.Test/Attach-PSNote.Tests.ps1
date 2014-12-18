@@ -28,4 +28,24 @@ Describe "Attach-PSNote" {
             $actualObject | Should Be $expectedObject
         }
     }
+
+    Context 'Given PSNoteProperty' {
+        It 'Adds the provided PSNoteProperty object' {
+            $actualObject = New-PSObject
+            $expectedName = "foo"
+            $expectedValue = "bar"
+            $expectedNoteProperty = new-object management.automation.PSNoteProperty $expectedName, $expectedValue
+            Attach-PSNote $actualObject $expectedNoteProperty
+            $actualObject.$expectedName | Should Be $expectedValue
+        }
+
+        It 'Throws an expection if note property already attached' {
+            $actualObject = New-PSObject
+            $expectedName = "foo"
+            $expectedValue = "bar"
+            $expectedNoteProperty = new-object management.automation.PSNoteProperty $expectedName, $expectedValue
+            Attach-PSNote $actualObject $expectedNoteProperty
+            { Attach-PSNote $actualObject $expectedNoteProperty } | Should Throw
+        }
+    }
 }
