@@ -2,11 +2,13 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # here : /branch/tests/Poshbox.Test
 . "$here\..\TestCommon.ps1"
 
-function IAmOutside {
-    return "I Am Outside"
-}
-
 Describe "New-PSClass" {
+    It 'cannot create two classes with the same name' {
+        $className = [Guid]::NewGuid().ToString()
+        $testClass = New-PSClass $className {}
+        { $testClass = New-PSClass $className {} } | Should Throw
+    }
+
     Context "GivenStaticMethod" {
         It "runs provided script block" {
             $className = [Guid]::NewGuid().ToString()
