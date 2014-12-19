@@ -5,8 +5,35 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Describe "New-PSClass" {
     It 'cannot create two classes with the same name' {
         $className = [Guid]::NewGuid().ToString()
-        $testClass = New-PSClass $className {}
-        { $testClass = New-PSClass $className {} } | Should Throw
+        $testClass = New-PSClass $className {} -PassThru
+        { New-PSClass $className {} } | Should Throw
+    }
+
+    It 'can inherit using the name of a class instead of a variable of the class definition' {
+        $className = [Guid]::NewGuid().ToString()
+        $testClass = New-PSClass $className {} -PassThru
+
+        $derivedClassName = [Guid]::NewGuid().ToString()
+        $derivedClass = New-PSClass $derivedClassName -Inherit $className {} -PassThru
+    }
+
+    Context 'PassThru' {
+        It 'Returns class object when given -PassThru switch' {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {} -PassThru
+            ($testClass -ne $null) | Should Be $true
+            $testClass.__ClassName | Should Be $className
+        }
+
+        It 'has no return value without passthru, but can be accessed from PSClassContainer' {
+            $className = [Guid]::NewGuid().ToString()
+            $testClass = New-PSClass $className {}
+            ($testClass -eq $null) | Should Be $true
+
+            $testClass = [PSClassContainer]::ClassDefinitions[$className]
+            ($testClass -eq $null) | Should Be $false
+            $testClass.__ClassName | Should Be $className
+        }
     }
 
     Context "GivenStaticMethod" {
@@ -16,7 +43,7 @@ Describe "New-PSClass" {
                 method "testMethod" -static {
                     return "expected"
                 }
-            }
+            } -PassThru
             $testClass.testMethod() | Should Be "expected"
         }
     }
@@ -26,7 +53,7 @@ Describe "New-PSClass" {
         $testClass = New-PSClass $className {
             method "testMethodNoParams" { return "base" }
             note "foo" "base"
-        }
+        } -PassThru
     }
 
     Context "GivenBaseClass" {
@@ -34,7 +61,7 @@ Describe "New-PSClass" {
             $className = [Guid]::NewGuid().ToString()
             $derivedClass = New-PSClass $className -inherit $testClass {
                 method -override "testMethodNoParams" { return "expected" }
-            }
+            } -PassThru
 
             $newDerived = $derivedClass.New()
             $newDerived.testMethodNoParams() | Should Be "expected"
@@ -42,14 +69,14 @@ Describe "New-PSClass" {
 
         It "can call non overridden base method" {
             $className = [Guid]::NewGuid().ToString()
-            $derivedClass = New-PSClass $className -inherit $testClass {}
+            $derivedClass = New-PSClass $className -inherit $testClass {} -PassThru
             $newDerived = $derivedClass.New()
             $newDerived.testMethodNoParams() | Should Be "base"
         }
 
         It "can call non overridden base note" {
             $className = [Guid]::NewGuid().ToString()
-            $derivedClass = New-PSClass $className -inherit $testClass {}
+            $derivedClass = New-PSClass $className -inherit $testClass {} -PassThru
             $newDerived = $derivedClass.New()
             $newDerived.foo | Should Be "base"
         }
@@ -67,10 +94,10 @@ Describe "New-PSClass" {
                     $this._foo = $a
                     $this._bar = $b
                 }
-            }
+            } -PassThru
 
             $derivedClassName = [Guid]::NewGuid().ToString()
-            $derivedClass = New-PSClass $derivedClassName -inherit $testClass {}
+            $derivedClass = New-PSClass $derivedClassName -inherit $testClass {} -PassThru
 
             $myAObject = New-PSObject @{
                 someProp = (New-PSObject @{
@@ -100,7 +127,7 @@ Describe "New-PSClass" {
 
                 note "_foo" "default"
                 property "foo" { return $this._foo }
-            }
+            } -PassThru
 
             $testObj = $testClass.New()
             $testObj.foo | Should Be "set by constructor"
@@ -113,12 +140,10 @@ Describe "New-PSClass" {
                 constructor {
                     $this._foo = $args[0]
                 }
-            }
+            } -PassThru
 
             $derivedClassName = [Guid]::NewGuid().ToString()
-            $derivedClass = New-PSClass $derivedClassName -inherit $testBaseClass {
-
-            }
+            $derivedClass = New-PSClass $derivedClassName -inherit $testBaseClass {} -PassThru
 
             $expectedValue = "derived"
 
@@ -134,14 +159,14 @@ Describe "New-PSClass" {
                 constructor {
                     $this._basenote = "base"
                 }
-            }
+            } -PassThru
 
             $derivedClassName = [Guid]::NewGuid().ToString()
             $derivedClass = New-PSClass $derivedClassName -inherit $testBaseClass {
                 constructor {
                     $this._foo = "derived"
                 }
-            }
+            } -PassThru
 
             $expectedValue = "derived"
 
@@ -160,7 +185,7 @@ Describe "New-PSClass" {
                     $this._foo = $a
                     $this._bar = $b
                 }
-            }
+            } -PassThru
 
             $expectedFoo = "expected foo"
             $expectedBar = "expected bar"
@@ -179,7 +204,7 @@ Describe "New-PSClass" {
                     $this._foo = $args[0]
                     $this._bar = $args[1]
                 }
-            }
+            } -PassThru
 
             $expectedFoo = "expected foo"
             $expectedBar = "expected bar"
@@ -202,7 +227,7 @@ Describe "New-PSClass" {
                     $this._foo = $a
                     $this._bar = $b
                 }
-            }
+            } -PassThru
 
             $myAObject = New-PSObject @{
                 someProp = (New-PSObject @{
@@ -300,7 +325,7 @@ Describe "New-PSClass" {
             $className = [Guid]::NewGuid().ToString()
             $testClass = New-PSClass $className {
                 note "testNote" "base"
-            }
+            } -PassThru
 
             $derivedClassName = [Guid]::NewGuid().ToString()
             { $derivedClass = New-PSClass $derivedClassName -inherit $testClass {

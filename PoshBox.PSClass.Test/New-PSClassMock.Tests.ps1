@@ -9,7 +9,7 @@ Describe "New-PSClassMock" {
                 method "foo" {
                     throw "not implemented"
                 }
-            }
+            } -PassThru
         }
 
         It "Given Non-Strict, No Expectation, methods do nothing, return null" {
@@ -66,7 +66,7 @@ Describe "New-PSClassMock" {
                 method "foo" {
                     param($a)
                 }
-            }
+            } -PassThru
 
             $mock = New-PSClassMock $testClass
             $mock.SetupMethod("foo", {
@@ -84,7 +84,7 @@ Describe "New-PSClassMock" {
                 method "foo" {
                     param($a)
                 }
-            }
+            } -PassThru
 
             $mock = New-PSClassMock $testClass
             $mock.SetupMethod("foo", {
@@ -114,7 +114,7 @@ Describe "New-PSClassMock" {
                 method "foo" {
                     param($a, $b)
                 }
-            }
+            } -PassThru
 
             $mock = New-PSClassMock $testClass
             $mock.SetupMethod("foo", {
@@ -132,7 +132,7 @@ Describe "New-PSClassMock" {
                 method "foo" {
                     param($a, $b)
                 }
-            }
+            } -PassThru
 
             $mock = New-PSClassMock $testClass
             $mock.SetupMethod("foo", {
@@ -150,7 +150,7 @@ Describe "New-PSClassMock" {
                 method "foo" {
                     param($a, $b)
                 }
-            }
+            } -PassThru
 
             $mock = New-PSClassMock $testClass
             $mock.SetupMethod("foo", {
@@ -173,7 +173,7 @@ Describe "New-PSClassMock" {
             $className = [Guid]::NewGuid().ToString()
             $testClass = New-PSClass $className {
                 note "myNote" "im a test"
-            }
+            } -PassThru
         }
 
         It "Includes notes from class" {
@@ -211,7 +211,7 @@ Describe "New-PSClassMock" {
             $className = [Guid]::NewGuid().ToString()
             $testClass = New-PSClass $className {
                 property "myProp" { return "im a test" }
-            }
+            } -PassThru
         }
 
         It "Includes properties from class" {
