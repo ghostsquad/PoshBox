@@ -4,7 +4,7 @@ Set-StrictMode -Version Latest
 if(-not (Get-Module PSCX -ListAvailable)){
     Throw (New-Object System.InvalidOperationException("Powershell Community Extensions is not installed. Please visit http://pscx.codeplex.com/downloads/get/744915"))
 } elseif(-not (Get-Module PSCX )) {
-    Import-Module PSCX -Global
+    Import-Module PSCX -Global -DisableNameChecking
 }
 
 # Commands Provided By PSCX
