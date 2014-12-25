@@ -57,16 +57,14 @@ function New-Enum {
         [Type]$Type = "Int32",
 
         [Alias('Flags')]
-        [Switch]$SetFlagsAttribute
+        [Switch]$SetFlagsAttribute,
+
+        [Switch]$Force
     )
 
     Guard-ArgumentNotNull 'ModuleBuilder' $ModuleBuilder
 
     Guard-ArgumentValid 'Name' "Invalid Name: $Name" ($Name -Match '^(\w+\.)*\w+$')
-
-    # This function cannot overwrite or append to existing types.
-    # Abort if a type of the same name is found and return a more friendly error
-    Guard-ArgumentValid 'Name' "New-Enum: Type $Name already exists" (-not $Name -as [Type])
 
     Guard-ArgumentNotNullOrEmpty 'Members' $Members
 

@@ -28,7 +28,7 @@ function New-DynamicModuleBuilder {
     $assemblyRegEx = '^{0},' -f ($AssemblyName.Name -replace '\.', '\.')
     $existingAssembly = $false
     foreach($assembly in $AppDomain.GetAssemblies()) {
-        if($assembly.IsDynamic -and $assembly.Name -match $assemblyRegEx) {
+        if($assembly.IsDynamic -and $assembly.GetName().Name -match $assemblyRegEx) {
             throw (new-object System.InvalidOperationException(("Dynamic assembly {0} already exists." -f $AssemblyName.Name)))
         }
     }
