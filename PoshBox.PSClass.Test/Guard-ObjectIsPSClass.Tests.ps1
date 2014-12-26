@@ -9,7 +9,7 @@ Describe 'Guard-ArgumentIsPSClass' {
             $testClass = New-PSClass $className {} -PassThru
             $testObject = $testClass.New()
 
-            Guard-ArgumentIsPSClass 'testArg' 'testArg' $testObject $testClass
+            Guard-ArgumentIsPSClass 'testArg' $testObject $testClass
         }
 
         It 'Does not throw if same PSClassName is provided' {
