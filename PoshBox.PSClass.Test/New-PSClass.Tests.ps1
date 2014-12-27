@@ -25,12 +25,12 @@ Describe "New-PSClass" {
             $testClass.__ClassName | Should Be $className
         }
 
-        It 'has no return value without passthru, but can be accessed from PSClassContainer' {
+        It 'has no return value without passthru, but can be accessed from Get-PSClass' {
             $className = [Guid]::NewGuid().ToString()
             $testClass = New-PSClass $className {}
             ($testClass -eq $null) | Should Be $true
 
-            $testClass = [PSClassContainer]::ClassDefinitions[$className]
+            $testClass = Get-PSClass $className
             ($testClass -eq $null) | Should Be $false
             $testClass.__ClassName | Should Be $className
         }
